@@ -538,6 +538,19 @@
         'bandsintown.com'
       ];
 
+      // The executive-assistant toolkit: one trusted source per pre-trip check.
+      // Pre-loaded into every assistant's Priority Sources; the user can edit or
+      // extend them in Settings. Order mirrors Wally's pre-trip checklist:
+      // flights → lodging → what's on → entry/safety → activities.
+      const DEFAULT_PRIORITY_URLS = [
+        'https://www.google.com/travel/flights',
+        'https://www.booking.com',
+        'https://www.timeout.com',
+        'https://travel.state.gov',
+        'https://www.viator.com'
+      ];
+      const MAX_PRIORITY_URLS = 8;
+
       // Technical-assist tuning.
       const ASSIST = {
         DEBOUNCE_MS: 1400,        // silence gap before a buffered utterance is classified
@@ -602,6 +615,9 @@
         '- Crowd and price warnings: which events blow up demand so someone can plan around them — or into them on purpose.',
         '- Local things to do: a handful of genuinely worth-it sights, neighborhoods, food, and day trips — concrete picks, not a brochure list.',
         '- Day-by-day shape: a loose itinerary built around the events and spots actually worth the trip.',
+        '',
+        '# How You Work (Executive-Assistant Discipline)',
+        "You approach every trip like a world-class executive assistant: methodical, detail-obsessed, and protective of the traveler's time and money. Before you recommend dates or a plan you run a pre-trip checklist — flights and the right booking window, lodging near the reason for the trip, what's on that swings crowds and prices, entry requirements and safety, and any activities or dinners that need booking ahead. You flag conflicts and risks early (a festival that triples hotel rates, a public holiday that shuts everything, a passport that needs six months' validity) instead of letting the traveler find out late.",
         '',
         '# Honesty & Accuracy',
         "- Only state what you're reasonably confident about. If you're unsure of an exact date, say so plainly (\"I'm not certain of this year's exact dates — confirm before you book\") instead of inventing one.",
@@ -828,7 +844,7 @@
           ttsQueue: null,               // FIFO of sentence TTS utterances
           speakAnswers: false,          // read answers out loud
           allowedDomains: DEFAULT_RESEARCH_DOMAINS.slice(),
-          priorityUrls: []              // up to 5 user-trusted URLs Wally prioritizes for accuracy
+          priorityUrls: DEFAULT_PRIORITY_URLS.slice()  // trusted URLs Wally prioritizes & validates against
         };
       }
 
@@ -1064,7 +1080,7 @@
               s.allowedDomains = d.allowedDomains.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim());
             }
             if (Array.isArray(d.priorityUrls)) {
-              s.priorityUrls = d.priorityUrls.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()).slice(0, 5);
+              s.priorityUrls = d.priorityUrls.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()).slice(0, MAX_PRIORITY_URLS);
             }
           });
         } catch {}
@@ -3297,15 +3313,22 @@
       // Settings are treated as the trusted sources to prioritize and align
       // with before relying on general knowledge.
       function priorityDirective(slot) {
-        const urls = (slot.priorityUrls || []).map(normalizeUrl).filter(Boolean).slice(0, 5);
+        const urls = (slot.priorityUrls || []).map(normalizeUrl).filter(Boolean).slice(0, MAX_PRIORITY_URLS);
         let out = '\n\n# Truth & Accuracy — #1 Priority\n'
-          + 'Accuracy outranks tone, completeness, and helpfulness. Never invent event names, dates, venues, prices, airlines, or URLs. '
-          + 'If you cannot verify a specific fact, say so plainly ("I\'d confirm this before booking") instead of guessing. A correct "I\'m not certain" beats a confident wrong answer.';
+          + 'You work like a world-class executive assistant booking corporate travel: accuracy outranks tone, completeness, and helpfulness. Never invent event names, dates, venues, prices, airlines, or URLs. '
+          + 'If you cannot verify a specific fact, say so plainly ("I\'d confirm this before booking") instead of guessing. A correct "I\'m not certain" beats a confident wrong answer.'
+          + '\n\n# Pre-Trip Checklist (work it every time it is relevant)\n'
+          + 'Before recommending a trip or a date, mentally run the executive-assistant checklist and surface what matters:\n'
+          + '1. **Flights** — realistic routes, fare ranges, and the right booking window for the dates.\n'
+          + '2. **Lodging** — hotel availability, location relative to the reason for travel, and price for those nights.\n'
+          + '3. **What\'s on** — events, festivals, holidays, or closures that swing crowds, prices, and availability.\n'
+          + '4. **Entry & safety** — visas, passport validity, and any travel advisories for the destination.\n'
+          + '5. **Activities & reservations** — tours, dinners, and tickets that need booking ahead.';
         if (urls.length) {
-          out += '\n\n# Priority Sources (consult first)\n'
-            + 'The user has designated these URLs as their trusted sources. Treat them as the FIRST and most authoritative reference for anything you can answer from them — prioritize information consistent with these over your general knowledge, and lean on them for dates, schedules, and prices:\n'
+          out += '\n\n# Priority Sources (validate against these first)\n'
+            + 'The user has designated these URLs as the trusted sources to validate the checklist against. Treat them as the FIRST and most authoritative reference for anything they would confirm — prioritize information consistent with them over your general knowledge, and lean on them for dates, schedules, and prices:\n'
             + urls.map(u => '- ' + u).join('\n')
-            + '\n(You cannot fetch live pages in this environment, so when an answer depends on details only these pages would confirm, tell the user to check the listed source rather than guessing.)';
+            + '\n(You cannot fetch live pages in this environment, so when an answer depends on details only these pages would confirm, point the user to the specific source to verify rather than guessing.)';
         }
         return out;
       }
@@ -4323,10 +4346,10 @@
 
               <div class="full">
                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-                  <i data-lucide="link" class="w-3 h-3 inline mr-1"></i>Priority Sources to Check (up to 5 URLs)
+                  <i data-lucide="link" class="w-3 h-3 inline mr-1"></i>Priority Travel Sources to Validate (edit or add &mdash; up to 8)
                 </label>
-                <textarea id="setting-priority" rows="5" placeholder="https://www.timeout.com/tokyo&#10;https://www.japan-guide.com&#10;https://www.viator.com">${escHtml((slot.priorityUrls || []).join('\n'))}</textarea>
-                <p class="text-[11px] text-slate-400 mt-1">One URL per line, up to 5. Wally treats these as his trusted, top-priority references and aligns answers to them first &mdash; with truth and accuracy as the #1 rule, never guessing past what they confirm.</p>
+                <textarea id="setting-priority" rows="6" placeholder="https://www.google.com/travel/flights&#10;https://www.booking.com&#10;https://travel.state.gov">${escHtml((slot.priorityUrls || []).join('\n'))}</textarea>
+                <p class="text-[11px] text-slate-400 mt-1">One URL per line. Pre-loaded with an executive-assistant toolkit &mdash; one trusted source per pre-trip check: <strong>flights</strong> (Google Flights), <strong>lodging</strong> (Booking.com), <strong>what&rsquo;s on</strong> (Time Out), <strong>entry &amp; safety</strong> (travel.state.gov), and <strong>activities</strong> (Viator). Wally validates answers against these first, with truth and accuracy as the #1 rule. Edit them, reorder, or add your own.</p>
               </div>
 
               <div class="full">
@@ -5390,7 +5413,7 @@
               s.voiceName = 'Wally';
               s.voicePersonality = DEFAULT_VOICE_PERSONALITY;
               s.allowedDomains = DEFAULT_RESEARCH_DOMAINS.slice();
-              s.priorityUrls = [];
+              s.priorityUrls = DEFAULT_PRIORITY_URLS.slice();
               saveSettings(); render(); break;
             }
           }
@@ -5485,7 +5508,7 @@
         }
         const pu = document.getElementById('setting-priority');
         if (pu) {
-          s.priorityUrls = pu.value.split('\n').map(x => x.trim()).filter(Boolean).slice(0, 5);
+          s.priorityUrls = pu.value.split('\n').map(x => x.trim()).filter(Boolean).slice(0, MAX_PRIORITY_URLS);
         }
       }
 
