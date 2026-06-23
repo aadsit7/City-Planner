@@ -603,9 +603,11 @@ class Component extends DCLogic {
         '',
         '# What You Help With',
         '- What\'s on and when: the date or window of festivals, concerts, sports, conferences, holidays, and seasonal happenings.',
-        '- Booking timing: when to lock flights and hotels around those dates, plus the cheaper shoulder windows nearby.',
+        '- When to travel: the best stretch to go for that specific place, weighing weather, crowds, prices, and the events worth timing a trip around.',
+        '- Flights and airlines: roughly how far ahead to book flights for that route (and the cheapest days/weeks to fly), which airlines or hubs serve it, plus when to lock hotels.',
         '- Crowd and price warnings: which events blow up demand so someone can plan around them — or into them on purpose.',
-        '- Day-by-day shape: a loose itinerary built around the events actually worth the trip.',
+        '- Local things to do: a handful of genuinely worth-it sights, neighborhoods, food, and day trips — concrete picks, not a brochure list.',
+        '- Day-by-day shape: a loose itinerary built around the events and spots actually worth the trip.',
         '',
         '# Honesty & Accuracy',
         "- Only state what you're reasonably confident about. If you're unsure of an exact date, say so plainly (\"I'm not certain of this year's exact dates — confirm before you book\") instead of inventing one.",
@@ -625,13 +627,19 @@ class Component extends DCLogic {
         '',
         '# Response Format — follow exactly',
         '1. The very first characters of your reply must be **Short answer:** followed by a one-sentence direct answer (the best window to go, or the headline event and its rough dates). Nothing before it — no greeting, no preamble.',
-        '2. Then 3-7 bullet points, each starting with "- ". One concrete thing per bullet: an event plus its rough dates, a crowd/price warning, a booking-timing tip, or an itinerary beat. Bold key terms (event names, months, neighborhoods) with **double asterisks**. Keep each bullet to one or two short sentences.',
-        '3. If you\'re laying out a day-by-day plan, use a numbered list ("1.", "2.", ...) for that part.',
+        '2. Then organize the rest into short, scannable sections. Start each section with a heading on its own line written as "## " followed by a Title-Case label, then 1-4 short bullets under it (each starting with "- "). Only include the sections that fit the question — never pad. Draw from these:',
+        '   - "## What\'s On" — the events worth knowing, each with rough dates.',
+        '   - "## When To Go" — the best window for THIS place specifically, weighing weather, crowds, and prices (not generic advice).',
+        '   - "## Flights & Booking" — roughly how far ahead to book flights for that route, the cheaper days/weeks to fly, which airlines or hub airports serve it, and when to lock hotels.',
+        '   - "## Heads Up" — crowd or price spikes to plan around (or into).',
+        '   - "## Worth Doing" — a few concrete local picks: sights, neighborhoods, food, a day trip.',
+        '   Bold key terms (event names, months, neighborhoods, airlines) with **double asterisks**. Keep each bullet to one or two short sentences.',
+        '3. If they ask for a plan, add a "## Day By Day" section using a numbered list ("1.", "2.", ...).',
         '4. After the bullets, output a line containing exactly: ===SPOKEN===',
         '5. After that marker, write a 2-3 sentence spoken summary, like you\'re telling a friend across the table. Real spoken English: contractions, varied length, no formatting, dates and numbers the way people say them ("mid-October", "a couple hundred bucks a night"). A short natural lead-in is fine.',
         '- When exact dates matter, say they\'re approximate and worth confirming rather than stating a precise date you can\'t verify.',
         '',
-        'Total length before the marker: under 180 words. Keep it warm, specific, and genuinely useful — never a brochure.'
+        'Total length before the marker: under 230 words. Keep it warm, specific, and genuinely useful — never a brochure. The sections should make the answer easy to skim at a glance.'
       ].join('\n');
 
       const DEFAULT_VOICE_PERSONALITY = "Your reply will be spoken aloud, so write it the way you'd actually say it. Keep it to 2-3 short sentences. Use contractions and everyday phrasing, vary the sentence length, and say dates the way people talk — 'mid-October', 'the first weekend of June', 'a couple hundred a night'. A natural lead-in is good ('Honestly,', 'So here's the thing —') but skip the brochure words. No markdown, no lists, no formatting of any kind. Warm and direct, like a well-traveled friend telling you exactly when to go.";
@@ -825,7 +833,8 @@ class Component extends DCLogic {
           abortController: null,        // abort the in-flight proxy fetch
           ttsQueue: null,               // FIFO of sentence TTS utterances
           speakAnswers: false,          // read answers out loud
-          allowedDomains: DEFAULT_RESEARCH_DOMAINS.slice()
+          allowedDomains: DEFAULT_RESEARCH_DOMAINS.slice(),
+          priorityUrls: []              // up to 5 user-trusted URLs Wally prioritizes for accuracy
         };
       }
 
@@ -1019,7 +1028,8 @@ class Component extends DCLogic {
           voicePersonality: s.voicePersonality,
           speakAnswers: !!s.speakAnswers,
           audioMode: s.audioMode === 'one-way' ? 'one-way' : 'two-way',
-          allowedDomains: s.allowedDomains
+          allowedDomains: s.allowedDomains,
+          priorityUrls: s.priorityUrls
         }));
         try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(data)); } catch {}
       }
@@ -1058,6 +1068,9 @@ class Component extends DCLogic {
             if (d.audioMode === 'one-way' || d.audioMode === 'two-way') s.audioMode = d.audioMode;
             if (Array.isArray(d.allowedDomains)) {
               s.allowedDomains = d.allowedDomains.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim());
+            }
+            if (Array.isArray(d.priorityUrls)) {
+              s.priorityUrls = d.priorityUrls.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()).slice(0, 5);
             }
           });
         } catch {}
@@ -3277,6 +3290,32 @@ class Component extends DCLogic {
         return [{ type: 'text', text, cache_control: { type: 'ephemeral' } }];
       }
 
+      // Normalize a user-entered URL: trim, add https:// if no scheme.
+      function normalizeUrl(u) {
+        let s = String(u || '').trim();
+        if (!s) return '';
+        if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
+        return s;
+      }
+
+      // Accuracy contract appended to every answer's system prompt. Truth and
+      // accuracy outrank everything else, and any URLs the user added in
+      // Settings are treated as the trusted sources to prioritize and align
+      // with before relying on general knowledge.
+      function priorityDirective(slot) {
+        const urls = (slot.priorityUrls || []).map(normalizeUrl).filter(Boolean).slice(0, 5);
+        let out = '\n\n# Truth & Accuracy — #1 Priority\n'
+          + 'Accuracy outranks tone, completeness, and helpfulness. Never invent event names, dates, venues, prices, airlines, or URLs. '
+          + 'If you cannot verify a specific fact, say so plainly ("I\'d confirm this before booking") instead of guessing. A correct "I\'m not certain" beats a confident wrong answer.';
+        if (urls.length) {
+          out += '\n\n# Priority Sources (consult first)\n'
+            + 'The user has designated these URLs as their trusted sources. Treat them as the FIRST and most authoritative reference for anything you can answer from them — prioritize information consistent with these over your general knowledge, and lean on them for dates, schedules, and prices:\n'
+            + urls.map(u => '- ' + u).join('\n')
+            + '\n(You cannot fetch live pages in this environment, so when an answer depends on details only these pages would confirm, tell the user to check the listed source rather than guessing.)';
+        }
+        return out;
+      }
+
       function conversationPayloadMessages(slot, cap) {
         return slot.messages
           .filter(m => (m.role === 'user' || m.role === 'assistant') && m.content)
@@ -3338,7 +3377,7 @@ class Component extends DCLogic {
             // get identical answers. (Older proxy deployments drop this
             // field harmlessly.)
             output_config: { effort: 'medium' },
-            system: systemBlocks(slot.prompt + '\n\n' + ASSIST_STYLE),
+            system: systemBlocks(slot.prompt + '\n\n' + ASSIST_STYLE + priorityDirective(slot)),
             messages: conversationPayloadMessages(slot, 20),
             // Skip the proxy's synchronous sheet append; saved from the
             // client below, off the answer's critical path.
@@ -3598,7 +3637,7 @@ class Component extends DCLogic {
             // answers — right for a live call. (Older proxy deployments drop
             // this field harmlessly.)
             output_config: { effort: 'medium' },
-            system: systemBlocks(slot.prompt + '\n\n' + ASSIST_STYLE),
+            system: systemBlocks(slot.prompt + '\n\n' + ASSIST_STYLE + priorityDirective(slot)),
             messages: prior.concat([{ role: 'user', content: question }]),
             // The proxy's synchronous sheet append would sit on the answer's
             // critical path — skip it and save from the client afterwards.
@@ -4286,6 +4325,14 @@ class Component extends DCLogic {
                 </label>
                 <textarea id="setting-prompt" rows="8" placeholder="You are Wally, a solution engineer...">${escHtml(slot.prompt)}</textarea>
                 <p class="text-[11px] text-slate-400 mt-1">Defines who Wally is — role, personality, and how he answers. Formatting rules are appended automatically and aren't editable here.</p>
+              </div>
+
+              <div class="full">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                  <i data-lucide="link" class="w-3 h-3 inline mr-1"></i>Priority Sources to Check (up to 5 URLs)
+                </label>
+                <textarea id="setting-priority" rows="5" placeholder="https://www.timeout.com/tokyo&#10;https://www.japan-guide.com&#10;https://www.viator.com">${escHtml((slot.priorityUrls || []).join('\n'))}</textarea>
+                <p class="text-[11px] text-slate-400 mt-1">One URL per line, up to 5. Wally treats these as his trusted, top-priority references and aligns answers to them first &mdash; with truth and accuracy as the #1 rule, never guessing past what they confirm.</p>
               </div>
 
               <div class="full">
@@ -5349,6 +5396,7 @@ class Component extends DCLogic {
               s.voiceName = 'Wally';
               s.voicePersonality = DEFAULT_VOICE_PERSONALITY;
               s.allowedDomains = DEFAULT_RESEARCH_DOMAINS.slice();
+              s.priorityUrls = [];
               saveSettings(); render(); break;
             }
           }
@@ -5440,6 +5488,10 @@ class Component extends DCLogic {
         s.voiceName = s.label;
         if (dm) {
           s.allowedDomains = dm.value.split('\n').map(x => x.trim()).filter(Boolean);
+        }
+        const pu = document.getElementById('setting-priority');
+        if (pu) {
+          s.priorityUrls = pu.value.split('\n').map(x => x.trim()).filter(Boolean).slice(0, 5);
         }
       }
 
