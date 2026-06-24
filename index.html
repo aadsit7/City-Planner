@@ -540,18 +540,24 @@
         'bandsintown.com'
       ];
 
-      // The executive-assistant toolkit: one trusted source per pre-trip check.
+      // The executive-assistant toolkit: trusted sources for pre-trip checks.
       // Pre-loaded into every assistant's Priority Sources; the user can edit or
       // extend them in Settings. Order mirrors Wally's pre-trip checklist:
-      // flights → lodging → what's on → entry/safety → activities.
+      // flights → delays/airspace → entry & safety → health → documentation →
+      // weather → per-diem → ground transport → events.
       const DEFAULT_PRIORITY_URLS = [
         'https://www.google.com/travel/flights',
-        'https://www.booking.com',
-        'https://www.timeout.com',
-        'https://travel.state.gov',
-        'https://www.viator.com'
+        'https://www.flightaware.com/live/airport/delays',
+        'https://nasstatus.faa.gov/',
+        'https://travel.state.gov/en/international-travel/travel-advisories.html',
+        'https://wwwnc.cdc.gov/travel/destinations/list',
+        'https://www.iata.org/en/services/compliance/timatic/travel-documentation/',
+        'https://www.weather.gov/alerts',
+        'https://www.gsa.gov/travel/plan-a-trip/per-diem-rates',
+        'https://www.rome2rio.com/',
+        'https://luma.com/discover'
       ];
-      const MAX_PRIORITY_URLS = 8;
+      const MAX_PRIORITY_URLS = 10;
 
       // Technical-assist tuning.
       const ASSIST = {
@@ -4455,10 +4461,10 @@
 
               <div class="full">
                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-                  <i data-lucide="link" class="w-3 h-3 inline mr-1"></i>Priority Travel Sources to Validate (edit or add &mdash; up to 8)
+                  <i data-lucide="link" class="w-3 h-3 inline mr-1"></i>Priority Travel Sources to Validate (edit or add &mdash; up to 10)
                 </label>
                 <textarea id="setting-priority" rows="6" placeholder="https://www.google.com/travel/flights&#10;https://www.booking.com&#10;https://travel.state.gov">${escHtml((slot.priorityUrls || []).join('\n'))}</textarea>
-                <p class="text-[11px] text-slate-400 mt-1">One URL per line. Pre-loaded with an executive-assistant toolkit &mdash; one trusted source per pre-trip check: <strong>flights</strong> (Google Flights), <strong>lodging</strong> (Booking.com), <strong>what&rsquo;s on</strong> (Time Out), <strong>entry &amp; safety</strong> (travel.state.gov), and <strong>activities</strong> (Viator). Wally validates answers against these first, with truth and accuracy as the #1 rule. Edit them, reorder, or add your own.</p>
+                <p class="text-[11px] text-slate-400 mt-1">One URL per line. Pre-loaded with an executive-assistant toolkit &mdash; trusted sources across the pre-trip checklist: <strong>flights</strong> (Google Flights), <strong>delays &amp; airspace</strong> (FlightAware, FAA), <strong>entry &amp; safety</strong> (travel.state.gov), <strong>health</strong> (CDC), <strong>documentation</strong> (IATA Timatic), <strong>weather</strong> (weather.gov), <strong>per-diem</strong> (GSA), <strong>ground transport</strong> (Rome2Rio), and <strong>events</strong> (Luma). Wally validates answers against these first, with truth and accuracy as the #1 rule. Edit them, reorder, or add your own.</p>
               </div>
 
               <div class="full">
