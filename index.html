@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Wally — City Event & Travel Scout</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
 :root {
         /* UserTesting design tokens — midnight navy + electric blue */
         --navy: #1A1A4E;
@@ -221,7 +225,7 @@
 
       /* ===== Message area ===== */
       .msg-scroll { flex: 1 1 0; min-height: 0; min-width: 0; overflow-y: auto; background: var(--n25); }
-      .msg-col { max-width: 768px; margin: 0 auto; padding: 28px 24px 16px; display: flex; flex-direction: column; gap: 16px; }
+      .msg-col { max-width: 860px; margin: 0 auto; padding: 32px 28px 16px; display: flex; flex-direction: column; gap: 16px; }
       .msg-row { display: flex; gap: 10px; align-items: flex-start; justify-content: flex-start; }
       .msg-row.me { justify-content: flex-end; }
       .msg-av { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; font-size: 12px; display: grid; place-items: center; flex-shrink: 0; margin-top: 2px; }
@@ -255,9 +259,13 @@
       .src-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--n200); }
       .src-chips a { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; color: var(--n600); background: var(--n50); border: 1px solid var(--n200); border-radius: 999px; padding: 3px 9px; text-decoration: none; transition: color 0.15s, border-color 0.15s, background 0.15s; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .src-chips a:hover { color: var(--primary); border-color: var(--cyan); background: var(--quote); }
+      .src-refs { margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--n200); }
+      .src-refs-label { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--n500); margin-bottom: 7px; }
+      .src-refs-label i { color: var(--primary); }
+      .src-refs .src-chips { margin-top: 0; padding-top: 0; border-top: none; }
 
       /* Per-message actions */
-      .msg-copy { position: absolute; top: 6px; right: 6px; background: rgba(255,255,255,0.9); border: 1px solid var(--n200); color: var(--n500); padding: 4px; min-width: 26px; min-height: 26px; border-radius: 7px; cursor: pointer; display: grid; place-items: center; transition: opacity 0.12s, background 0.12s, color 0.12s, border-color 0.12s; opacity: 0; }
+      .msg-copy { position: absolute; top: 6px; right: 6px; background: rgba(255,255,255,0.9); border: 1px solid var(--n200); color: var(--n500); padding: 4px; min-width: 26px; min-height: 26px; border-radius: 7px; cursor: pointer; display: grid; place-items: center; transition: opacity 0.12s, background 0.12s, color 0.12s, border-color 0.12s; opacity: 0.5; }
       .msg-wrap:hover .msg-copy, .msg-copy:focus-visible { opacity: 1; }
       .msg-copy:hover { background: #fff; color: var(--primary); border-color: var(--primary); }
       .msg-copy.copied { background: #ecfdf5; border-color: #6ee7b7; color: #047857; opacity: 1; }
@@ -304,7 +312,7 @@
 
       /* ===== Composer ===== */
       .composer-zone { flex-shrink: 0; background: var(--n25); padding: 8px 24px max(16px, env(safe-area-inset-bottom)); }
-      .composer { display: flex; align-items: flex-end; gap: 10px; max-width: 768px; margin: 0 auto; background: #fff; border: 1.5px solid var(--n200); border-radius: 26px; padding: 8px 8px 8px 20px; box-shadow: var(--shadow-card); transition: border-color 0.15s, box-shadow 0.15s; }
+      .composer { display: flex; align-items: flex-end; gap: 10px; max-width: 860px; margin: 0 auto; background: #fff; border: 1.5px solid var(--n200); border-radius: 26px; padding: 8px 8px 8px 20px; box-shadow: var(--shadow-card); transition: border-color 0.15s, box-shadow 0.15s; }
       .composer:focus-within { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(43,89,255,0.12); }
       .composer textarea.composer-input { flex: 1; min-width: 0; border: none; background: transparent; padding: 8px 0; font-size: 14.5px; font-weight: 400; color: var(--navy-deep); line-height: 1.45; border-radius: 0; resize: none; min-height: 22px; max-height: 150px; field-sizing: content; }
       .composer textarea.composer-input:focus { box-shadow: none; border: none; }
@@ -391,6 +399,38 @@
       .sb-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left 0.2s; box-shadow: 0 1px 2px rgba(22,31,91,0.25); }
       .sb-switch.on::after { left: 20px; }
       .sb-divider { height: 1px; background: rgba(255,255,255,0.12); margin: 8px 14px; flex-shrink: 0; }
+
+      /* ===== Sidebar voice console (Wally + mic, moved to the left) ===== */
+      .sb-voice { margin: 0 14px 12px; padding: 16px 14px 14px; background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.10); border-radius: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 9px; flex-shrink: 0; }
+      .sbv-orb-wrap { position: relative; width: 92px; height: 92px; display: grid; place-items: center; }
+      .sbv-orb-wrap .orb-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--cyan); opacity: 0; pointer-events: none; }
+      .sbv-orb-wrap.live .orb-ring { animation: orbPulse 1.9s ease-out infinite; opacity: .5; }
+      .sbv-orb-wrap.live .orb-ring.d { animation-delay: .95s; }
+      .sb-voice .voice-orb { width: 76px; height: 76px; }
+      .sb-voice .voice-orb .sound-wave { height: 22px; }
+      .sbv-status { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: #fff; line-height: 1.25; }
+      .sb-voice.stage-listening .sbv-status { color: var(--cyan-hi); }
+      .sb-voice.stage-analyzing .sbv-status { color: #FCD34D; }
+      .sb-voice.stage-researching .sbv-status { color: #6EE7B7; }
+      .sb-voice.stage-speaking .sbv-status { color: var(--cyan-hi); }
+      .sbv-sub { font-size: 11.5px; line-height: 1.45; color: var(--muted-blue); text-wrap: pretty; max-width: 30ch; }
+      .sbv-transcript { width: 100%; margin-top: 2px; max-height: 132px; overflow-y: auto; text-align: left; font-size: 13px; line-height: 1.5; color: #fff; background: rgba(0,0,0,0.20); border-radius: 10px; padding: 9px 11px; scroll-behavior: smooth; overflow-wrap: break-word; word-break: break-word; }
+      .sbv-transcript:empty { display: none; }
+
+      /* ===== Full-width results pane (right side) ===== */
+      .results-col { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+
+      /* ===== Travel-planner welcome / empty state ===== */
+      .results-empty { max-width: 580px; margin: 0 auto; padding: 8vh 24px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 13px; }
+      .re-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--n400); }
+      .re-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: var(--navy-deep); margin: 0; }
+      .re-lead { font-size: 14.5px; line-height: 1.65; color: var(--gray); margin: 0 0 6px; text-wrap: pretty; }
+      .re-examples-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--n400); align-self: flex-start; margin-left: 2px; }
+      .re-examples { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+      .re-chip { display: inline-flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: #fff; border: 1.5px solid var(--n200); border-radius: 12px; padding: 12px 15px; font-size: 13.5px; font-weight: 600; color: var(--navy-deep); cursor: pointer; transition: border-color 0.12s, box-shadow 0.12s, transform 0.1s; font-family: inherit; }
+      .re-chip i { color: var(--primary); flex-shrink: 0; }
+      .re-chip:hover { border-color: var(--primary); box-shadow: var(--shadow-card); }
+      .re-chip:active { transform: translateY(1px); }
 
       /* ================================================================
        * VOICE CONSOLE — the main stage: mic orb + live voice-to-text +
@@ -504,11 +544,13 @@
         .ac-scrim, .ac-modal { animation: none !important; }
         .ac-seg-thumb { transition: none !important; }
       }
-    </style>
-  </head>
-  <body class="antialiased">
-    <div id="app"></div>
-    <script>
+</style>
+</helmet>
+<div id="app"></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
 'use strict';
 
       /* ================================================================
@@ -528,11 +570,9 @@
       // already used successfully against this account.
       const SEARCH_TOOL = 'web_search_20250305';
 
-      // Event / travel sources the assistant searches. Editable in Settings;
-      // one per line there. When RESEARCH_PROXY is configured these become the
-      // web_search allow-list (the proxy only searches these domains); leave
-      // the list broad enough to cover official city/airport/gov sources, not
-      // just event sites. With no proxy they document intent only.
+      // Event / travel sources Wally references. Editable in Settings; one per
+      // line there. (Live lookups aren't wired in this build — these document
+      // intent and seed the allow-list for any future search integration.)
       const DEFAULT_RESEARCH_DOMAINS = [
         'songkick.com',
         'eventbrite.com',
@@ -540,24 +580,18 @@
         'bandsintown.com'
       ];
 
-      // The executive-assistant toolkit: trusted sources for pre-trip checks.
+      // The executive-assistant toolkit: one trusted source per pre-trip check.
       // Pre-loaded into every assistant's Priority Sources; the user can edit or
       // extend them in Settings. Order mirrors Wally's pre-trip checklist:
-      // flights → delays/airspace → entry & safety → health → documentation →
-      // weather → per-diem → ground transport → events.
+      // flights → lodging → what's on → entry/safety → activities.
       const DEFAULT_PRIORITY_URLS = [
         'https://www.google.com/travel/flights',
-        'https://www.flightaware.com/live/airport/delays',
-        'https://nasstatus.faa.gov/',
-        'https://travel.state.gov/en/international-travel/travel-advisories.html',
-        'https://wwwnc.cdc.gov/travel/destinations/list',
-        'https://www.iata.org/en/services/compliance/timatic/travel-documentation/',
-        'https://www.weather.gov/alerts',
-        'https://www.gsa.gov/travel/plan-a-trip/per-diem-rates',
-        'https://www.rome2rio.com/',
-        'https://luma.com/discover'
+        'https://www.booking.com',
+        'https://www.timeout.com',
+        'https://travel.state.gov',
+        'https://www.viator.com'
       ];
-      const MAX_PRIORITY_URLS = 10;
+      const MAX_PRIORITY_URLS = 8;
 
       // Technical-assist tuning.
       const ASSIST = {
@@ -599,63 +633,39 @@
        * ================================================================ */
 
       const WALLY_PERSONA = [
-        '# Identity / Role',
-        'You are City Trip Intelligence Planner, a corporate travel and events research assistant specializing in SaaS-company employee travel, city research, local events, group activities, and traveler safety. You are not a generic assistant.',
+        '# Role',
+        "You are Wally, a sharp, well-traveled city event scout. You help people figure out what's happening in a city — concerts, festivals, conferences, sports, holidays, big cultural moments — and use that to pin down the best time to book a trip. You talk like a friend who travels constantly and always seems to know what's on: warm, specific, a little opinionated, never a brochure.",
         '',
-        '# Mission / Objective',
-        'Your goal is to turn a user-provided city and date into a useful travel intelligence brief. When the user gives you a location and a date (or date range, or month), you research it and show the results right here in the chat — that is the only place results go. You never save, log, export, or write results to a spreadsheet, Google Sheets, a database, or any external destination. Success = the user receives current, practical, source-backed recommendations for travel planning, safety awareness, local events, and company-friendly things to do, shown in the conversation. Optimize for accuracy, usefulness, and time-saving over volume or entertainment.',
+        'How a good scout behaves:',
+        '- Anchors everything to dates. "What\'s happening and when" is the whole game.',
+        '- Flags the catches: when a big event spikes hotel prices, jams flights, or packs the city — and when the quiet, cheaper windows are.',
+        '- Gives a real recommendation, not a pile of maybes. "I\'d aim for the second week of October" beats "there are several options."',
+        '- Remembers the goal behind the question is usually a good trip, at a fair price, with the right vibe.',
         '',
-        '# Capabilities & Scope',
-        'You CAN:',
-        '- Research a city for specific dates, a date range, or a month.',
-        '- Find local events, conferences, festivals, tech/startup meetups, cultural activities, and team-friendly outings.',
-        '- Check traveler safety, weather, transit, airport disruption, advisories, and local logistics.',
-        '- Suggest company-appropriate activities for small teams, offsites, customer visits, conferences, and employee travel.',
-        '- Provide links, dates, locations, short descriptions, and practical notes.',
-        '- Use live web research when available.',
-        'You WILL NOT:',
-        '- Save, store, or write any result to Google Sheets or any other file, sheet, or system — results are shown in the chat only.',
-        '- Book travel, buy tickets, make reservations, or claim availability unless verified from a current source.',
-        '- Invent events, prices, safety risks, or schedules.',
-        '- Recommend unsafe, illegal, discriminatory, adult-only, or clearly inappropriate company activities.',
-        '- Present user-generated listings as confirmed facts without checking the source.',
-        '- Claim certainty when information is limited, outdated, or conflicting.',
+        '# How You Talk',
+        '- Use contractions naturally — "it\'s", "you\'ll", "that\'s". Stiff prose reads as robotic.',
+        '- Vary your rhythm. Mix short punchy sentences with longer ones.',
+        '- Speak in first person where it fits: "I\'d book that one early", "honestly, I\'d skip that weekend".',
+        '- Banned brochure filler: "vibrant", "hidden gem", "must-see", "bucket-list", "nestled", "boasts", "vibe-rich". Say the actual thing.',
+        '- Don\'t restate the question, don\'t announce what you\'re about to say, and don\'t close with a recap.',
+        '- Have a take. Steering someone off a bad week is more useful than a neutral list.',
         '',
-        '# Behavioral Rules',
-        'Ask only when the missing detail would prevent a useful result. Required input: a city, and a date, date range, or month.',
-        '- If the user gives only a month, research the full month and highlight date-specific events where available.',
-        '- If the user gives exact dates, prioritize only events and travel factors relevant to those dates.',
-        'Work process:',
-        '1. Identify the city, country/state, and date window.',
-        '2. Search current sources for events, travel conditions, safety, weather, and logistics.',
-        '3. Cross-check important claims using official or reputable sources.',
-        '4. Filter for company-appropriate options.',
-        '5. Return a concise, source-backed brief in one response, shown in the chat.',
-        "Don't ask extra preference questions unless the request is impossible to answer without them. Make reasonable assumptions and state them clearly.",
+        '# What You Help With',
+        '- What\'s on and when: the date or window of festivals, concerts, sports, conferences, holidays, and seasonal happenings.',
+        '- When to travel: the best stretch to go for that specific place, weighing weather, crowds, prices, and the events worth timing a trip around.',
+        '- Flights and airlines: roughly how far ahead to book flights for that route (and the cheapest days/weeks to fly), which airlines or hubs serve it, plus when to lock hotels.',
+        '- Crowd and price warnings: which events blow up demand so someone can plan around them — or into them on purpose.',
+        '- Local things to do: a handful of genuinely worth-it sights, neighborhoods, food, and day trips — concrete picks, not a brochure list.',
+        '- Day-by-day shape: a loose itinerary built around the events and spots actually worth the trip.',
         '',
-        '# Tone & Voice',
-        'Write in a concise, professional, practical style. Be direct, use short sections, and lead with the most useful information. Flag uncertainty clearly and include links. Avoid hype or travel-blog language, over-explaining, low-quality filler activities, and burying important safety or disruption issues. Never say something is confirmed unless the source supports it.',
-        '',
-        '# Guardrails / Boundaries',
-        'Stay within corporate travel planning, event discovery, local logistics, and traveler safety. Never fabricate.',
-        '- If no reliable sources confirm an event, say: "I could not reliably verify this event."',
-        '- If sources conflict, say what conflicts and which source appears stronger.',
-        'Prioritize sources in this order: (1) official city, airport, transit, government, or event-organizer sites; (2) official tourism boards and convention/visitor bureaus; (3) venue websites; (4) reputable ticketing/event platforms; (5) reputable local news; (6) community platforms only as secondary leads.',
-        'For safety and travel risk, prefer official sources such as the U.S. State Department Travel Advisories, CDC Travelers’ Health, the National Weather Service or local meteorological agency, FAA / airport status pages, and local police, city government, or transit-agency updates.',
-        'Do not provide legal, medical, or immigration advice as final authority. Provide official links and recommend verification with the relevant authority when needed.',
+        '# How You Work (Executive-Assistant Discipline)',
+        "You approach every trip like a world-class executive assistant: methodical, detail-obsessed, and protective of the traveler's time and money. Before you recommend dates or a plan you run a pre-trip checklist — flights and the right booking window, lodging near the reason for the trip, what's on that swings crowds and prices, entry requirements and safety, and any activities or dinners that need booking ahead. You flag conflicts and risks early (a festival that triples hotel rates, a public holiday that shuts everything, a passport that needs six months' validity) instead of letting the traveler find out late.",
         '',
         '# Honesty & Accuracy',
         "- Only state what you're reasonably confident about. If you're unsure of an exact date, say so plainly (\"I'm not certain of this year's exact dates — confirm before you book\") instead of inventing one.",
         '- Never fabricate event names, dates, venues, or prices. Recurring events (annual festivals, regular seasons) you can speak to in general terms; one-off dates you flag as needing confirmation.',
-        '- Give a confidence read when it matters, and explain briefly when your confidence is low.',
-        '',
-        '# Edge-Case Handling',
-        '- If the city is vague, ask one clarifying question only (e.g. "Which city do you mean: Portland, Oregon or Portland, Maine?").',
-        '- If the date is vague, interpret month-only requests as the full calendar month, and "next week" or "this weekend" relative to the current date — then state the interpreted date range.',
-        '- If there are few events, say so clearly and expand to nearby venues, recurring activities, museums, food halls, coworking/community events, and official tourism calendars. Do not invent filler events.',
-        '- If events are not yet posted, say the calendar may not be published yet, provide the best current leads, and recommend when to re-check.',
-        '- If sources conflict, surface the conflict and prefer official organizer or venue information.',
-        '- If the user asks for unsafe, adult-only, illegal, or inappropriate company activities, refuse that portion and redirect to professional, company-safe alternatives.'
+        '- Live listings aren\'t wired in here, so treat specific dates as "typically around X — verify on the official site" rather than gospel. Be upfront about that when it matters.',
+        '- If a request is outside travel and events entirely, say so in a sentence and point them somewhere useful.'
       ].join('\n');
 
       // Shared answer format for every Wally reply — typed chat and overheard
@@ -827,22 +837,6 @@
       // Streaming proxy disabled — the built-in helper returns whole replies,
       // so the non-streaming postChat() path is always used.
       const STREAM_WEBHOOK = '';
-
-      // Live research proxy (see RESEARCH.md + worker.js). The built-in
-      // window.claude.complete helper answers only from the model's training
-      // knowledge — it has no web access — so on its own the assistant can't
-      // pull *current* events, dates, advisories, or prices. Deploy the bundled
-      // Cloudflare Worker (it holds the Anthropic API key server-side and calls
-      // the Messages API with the web_search tool) and paste its URL here to
-      // turn on genuine live research: every answer is then grounded in fresh
-      // web results and the sources are shown in the chat.
-      //   EMPTY (default) → no proxy; postChat() falls back to
-      //                     window.claude.complete (model knowledge only).
-      //   set to the Worker URL → postChat() routes through it, the model runs
-      //                     real web searches, and {reply, sources} come back.
-      // NEVER put an API key here — the key lives only in the Worker's secret
-      // store. This file ships to every visitor's browser.
-      const RESEARCH_PROXY = '';
 
       // Q&As are grouped into conversations by session id. "New chat" rotates
       // it, so the next questions land in a fresh History entry.
@@ -1104,11 +1098,7 @@
         // "Honesty About Capabilities" section was added. Returning users have
         // that older default cached; matching it here refreshes them to the
         // current WALLY_PERSONA so the honesty rules actually reach them.
-        'Your research process is invisible.',
-        // Distinctive line from the "Wally city event scout" default that
-        // shipped before the City Trip Intelligence Planner persona. Matching
-        // it refreshes returning users to the current WALLY_PERSONA.
-        'You are Wally, a sharp, well-traveled city event scout.'
+        'Your research process is invisible.'
       ];
 
       function loadSettings() {
@@ -3283,75 +3273,14 @@
       // surfaces as a TimeoutError (not AbortError), so callers treat it as a
       // real failure to retry/fall back rather than a silent user cancel.
       async function postChat(body, signal, timeoutMs) {
-        // Two backends, chosen by whether RESEARCH_PROXY is configured:
-        //   • RESEARCH_PROXY set → the Cloudflare Worker, which calls the
-        //     Messages API with the web_search tool. Real live research; the
-        //     answer is grounded in fresh web results and carries sources.
-        //   • otherwise → the built-in window.claude.complete helper, which
-        //     accepts a messages array only (persona folded in as a leading
-        //     user turn) and answers from the model's training knowledge with
-        //     no web access.
+        // Backend: the built-in Claude helper (window.claude.complete). It only
+        // accepts a messages array, so the persona/system prompt is folded in as
+        // a leading user turn with a short assistant acknowledgement. There is no
+        // live web-search tool here — answers come from the model's own knowledge.
         const sysText = Array.isArray(body.system)
           ? body.system.map(b => (b && b.text) ? b.text : String(b || '')).join('\n')
           : (body.system || '');
         const convo = Array.isArray(body.messages) ? body.messages.slice() : [];
-        const ms = timeoutMs || ASSIST.ANSWER_TIMEOUT_MS;
-
-        // Live-research path: when a research proxy is configured, send the
-        // system prompt + conversation to the Worker, which calls the Messages
-        // API with the web_search tool and returns a grounded answer plus the
-        // source URLs it actually used. This is the only path that pulls
-        // CURRENT events/dates \u2014 window.claude.complete cannot search.
-        if (RESEARCH_PROXY) {
-          // The client-built web_search tool (body.tools) carries the
-          // allow-list the user configured in Settings; forward just the
-          // domains so the Worker owns the model + tool version.
-          const tool = Array.isArray(body.tools) ? body.tools.find(t => t && t.name === 'web_search') : null;
-          const allowedDomains = (tool && Array.isArray(tool.allowed_domains)) ? tool.allowed_domains : [];
-          const payload = {
-            system: sysText,
-            messages: convo
-              .filter(m => m && (m.role === 'user' || m.role === 'assistant') && m.content)
-              .map(m => ({ role: m.role, content: String(m.content) })),
-            allowedDomains,
-            maxTokens: body.max_tokens || 1500
-          };
-          const ctrl = new AbortController();
-          const onAbort = () => ctrl.abort();
-          if (signal) {
-            if (signal.aborted) ctrl.abort();
-            else signal.addEventListener('abort', onAbort, { once: true });
-          }
-          const timer = setTimeout(() => ctrl.abort(), ms);
-          try {
-            const resp = await fetch(RESEARCH_PROXY, {
-              method: 'POST',
-              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-              body: JSON.stringify(payload),
-              signal: ctrl.signal
-            });
-            if (!resp.ok) throw new Error('Research proxy returned ' + resp.status);
-            const data = await resp.json();
-            return {
-              reply: String((data && data.reply) || ''),
-              sources: Array.isArray(data && data.sources) ? data.sources : []
-            };
-          } catch (err) {
-            // Distinguish a user/timeout abort from a genuine proxy failure so
-            // callers retry/fall back correctly (same contract as below).
-            if (ctrl.signal.aborted && !(signal && signal.aborted)) {
-              throw new DOMException('Request timed out', 'TimeoutError');
-            }
-            throw err;
-          } finally {
-            clearTimeout(timer);
-            if (signal) signal.removeEventListener('abort', onAbort);
-          }
-        }
-
-        // Fallback path: the built-in helper accepts a messages array only, so
-        // the persona/system prompt is folded in as a leading user turn. No web
-        // search here \u2014 answers come from the model's own knowledge.
         const messages = [];
         if (sysText) {
           messages.push({ role: 'user', content: sysText });
@@ -3367,6 +3296,7 @@
         if (!(window.claude && typeof window.claude.complete === 'function')) {
           throw new Error('Answer service is unavailable in this environment.');
         }
+        const ms = timeoutMs || ASSIST.ANSWER_TIMEOUT_MS;
         const completion = Promise.resolve(window.claude.complete({ messages }));
         const timeout = new Promise((_, rej) => setTimeout(
           () => rej(new DOMException('Request timed out', 'TimeoutError')), ms));
@@ -3975,6 +3905,31 @@
 
       /* ---------- sidebar ---------- */
 
+      // Wally's mic console, now living in the left sidebar right under "New chat".
+      // Pressing the orb turns Wally on/off; the rest of the screen stays dedicated
+      // to results. Keeps the live-transcript ids so patchLiveTranscript() works.
+      function renderSidebarVoice(slot, idx, vm, cm) {
+        const liveNode = slot.listenOn && (cm.stageKey === 'listening' || cm.stageKey === 'speaking');
+        let transcript = '';
+        if (liveNode) {
+          const caret = cm.stageKey === 'listening' ? '<span class="interim-caret">▊</span>' : '';
+          transcript = `<div class="sbv-transcript ac-live ${VOICE.interimText ? 'hearing' : ''}" id="live-transcript"><span id="live-transcript-text">${escHtml(VOICE.interimText || '')}</span>${caret}</div>`;
+        }
+        return `
+          <div class="sb-voice stage-${cm.stageKey}">
+            <div class="sbv-orb-wrap ${vm.live ? 'live' : ''}">
+              <span class="orb-ring"></span>
+              <span class="orb-ring d"></span>
+              <button class="voice-orb ${vm.orbClass}" title="${escAttr(vm.title)}" aria-label="${escAttr(vm.title)}" data-action="${vm.action}" data-idx="${idx}" ${vm.disabled ? 'disabled' : ''}>
+                ${vm.orbInner}
+              </button>
+            </div>
+            <div class="sbv-status">${escHtml(cm.label)}</div>
+            <div class="sbv-sub">${escHtml(cm.sub)}</div>
+            ${transcript}
+          </div>`;
+      }
+
       function renderSidebarItem(h) {
         const confirming = STATE.historyConfirmDeleteId === h.id;
         const active = HISTORY_VIEW.open === h.id;
@@ -4008,6 +3963,8 @@
         const history = STATE.sessionHistory;
         const filtered = filterHistory(history, STATE.historyQuery);
         const slot = STATE.slots[0];
+        const vm = voiceModel(slot, 0);
+        const cm = consoleModel(slot, vm);
         return `
           <aside class="sidebar ${STATE.historyOpen ? 'open' : ''}" data-screen-label="Sidebar">
             <div class="sb-brand">
@@ -4020,6 +3977,7 @@
             <button class="sb-new" data-action="new-chat" title="Start a new chat — the current one is saved below">
               <i data-lucide="square-pen" class="w-4 h-4"></i>New chat
             </button>
+            ${renderSidebarVoice(slot, 0, vm, cm)}
             <div class="sb-controls">
               <div class="sb-label">Options</div>
               <button class="sb-ctl" data-action="toggle-speak-answers" title="${slot.speakAnswers ? 'Wally reads each answer out loud' : 'Answers show in the chat only'}">
@@ -4209,11 +4167,21 @@
       }
 
       function renderHomeEmpty(slot) {
+        const examples = [
+          'Plan a 3-day trip to Lisbon in October',
+          "What's on in Austin next weekend?",
+          'Best time to visit Tokyo for cherry blossoms',
+          'Weekend in Barcelona — events, food & where to stay'
+        ];
         return `
-          <div style="max-width:520px;margin:0 auto;text-align:center;padding:7vh 20px 24px;display:flex;flex-direction:column;align-items:center;gap:14px">
-            <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--n400)">Wally · City Event Scout</div>
-            <h2 style="font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--navy-deep);margin:0">Hey, I&rsquo;m ${escHtml(slot.voiceName || slot.label)}.</h2>
-            <p style="font-size:14.5px;line-height:1.65;color:var(--gray);margin:0;text-wrap:pretty">Your city event &amp; travel scout. Tell me a city &mdash; out loud with the mic, or typed below &mdash; and I&rsquo;ll tell you what&rsquo;s happening, when crowds and prices spike, and the best window to book.</p>
+          <div class="results-empty">
+            <div class="re-eyebrow">Wally · City Event &amp; Travel Scout</div>
+            <h2 class="re-title">Where are we planning today?</h2>
+            <p class="re-lead">Name a city &mdash; press the mic on the left to say it, or type below &mdash; and I&rsquo;ll lay out what&rsquo;s on, when crowds and prices spike, the best window to book, and the reference links to back it up.</p>
+            <div class="re-examples-label">Try asking</div>
+            <div class="re-examples">
+              ${examples.map(t => `<button class="re-chip" data-action="use-example" data-text="${escAttr(t)}"><i data-lucide="arrow-up-right" class="w-4 h-4"></i>${escHtml(t)}</button>`).join('')}
+            </div>
           </div>`;
       }
 
@@ -4222,11 +4190,7 @@
         const hasMsgs = slot.messages.length > 0;
         return `
           ${renderChatHeader(slot, idx, vm)}
-          <div class="split-row">
-            <div class="top-stage">
-              ${renderConsole(slot, idx, vm)}
-            </div>
-            <div class="right-col">
+          <div class="results-col">
               <div id="home-scroll-${idx}" class="msg-scroll">
                 <div class="msg-col">
                   ${hasMsgs ? slot.messages.map((m, mi) => `
@@ -4249,8 +4213,7 @@
                   </button>
                 </div>
               </div>
-            </div>
-          </div>`;
+            </div>`;
       }
 
       /* ---------- message rendering ---------- */
@@ -4261,20 +4224,17 @@
         // format and sources are identical. The "Technical assist" badge is the
         // only thing unique to overheard questions.
         const srcs = Array.isArray(m.sources) ? m.sources : [];
-        // Show the "Scouted live" badge for overheard questions and for any
-        // answer actually backed by live web sources (the research proxy
-        // returns the URLs it used; model-knowledge answers have none).
-        const badge = (m.kind === 'assist' || srcs.length)
+        const badge = m.kind === 'assist'
           ? `<div class="assist-badge"><i data-lucide="compass" class="w-3 h-3"></i>Scouted live</div>`
           : '';
         return `${av}
           <div class="msg-wrap"><div class="chat-bubble chat-bot chat-md" style="padding-right:38px;white-space:normal">
             ${badge}
             ${mdToHtml(m.content)}
-            ${srcs.length ? `<div class="src-chips">${srcs.map(u => `
+            ${srcs.length ? `<div class="src-refs"><div class="src-refs-label"><i data-lucide="link-2" class="w-3 h-3"></i>Reference links</div><div class="src-chips">${srcs.map(u => `
               <a href="${escAttr(u)}" target="_blank" rel="noopener noreferrer" title="${escAttr(u)}">
-                <i data-lucide="link" class="w-3 h-3"></i>${escHtml(hostnameOf(u))}
-              </a>`).join('')}</div>` : ''}
+                <i data-lucide="external-link" class="w-3 h-3"></i>${escHtml(hostnameOf(u))}
+              </a>`).join('')}</div></div>` : ''}
           </div>${copyBtnHtml(slotIdx, mi)}${speakerBtnHtml(slotIdx, mi)}</div>`;
       }
 
@@ -4453,18 +4413,18 @@
 
               <div class="full">
                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-                  <i data-lucide="file-text" class="w-3 h-3 inline mr-1"></i>Assistant Instructions (system prompt core)
+                  <i data-lucide="file-text" class="w-3 h-3 inline mr-1"></i>Wally's Persona (system prompt core)
                 </label>
-                <textarea id="setting-prompt" rows="8" placeholder="You are City Trip Intelligence Planner, a corporate travel and events research assistant...">${escHtml(slot.prompt)}</textarea>
+                <textarea id="setting-prompt" rows="8" placeholder="You are Wally, a solution engineer...">${escHtml(slot.prompt)}</textarea>
                 <p class="text-[11px] text-slate-400 mt-1">Defines who Wally is — role, personality, and how he answers. Formatting rules are appended automatically and aren't editable here.</p>
               </div>
 
               <div class="full">
                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-                  <i data-lucide="link" class="w-3 h-3 inline mr-1"></i>Priority Travel Sources to Validate (edit or add &mdash; up to 10)
+                  <i data-lucide="link" class="w-3 h-3 inline mr-1"></i>Priority Travel Sources to Validate (edit or add &mdash; up to 8)
                 </label>
                 <textarea id="setting-priority" rows="6" placeholder="https://www.google.com/travel/flights&#10;https://www.booking.com&#10;https://travel.state.gov">${escHtml((slot.priorityUrls || []).join('\n'))}</textarea>
-                <p class="text-[11px] text-slate-400 mt-1">One URL per line. Pre-loaded with an executive-assistant toolkit &mdash; trusted sources across the pre-trip checklist: <strong>flights</strong> (Google Flights), <strong>delays &amp; airspace</strong> (FlightAware, FAA), <strong>entry &amp; safety</strong> (travel.state.gov), <strong>health</strong> (CDC), <strong>documentation</strong> (IATA Timatic), <strong>weather</strong> (weather.gov), <strong>per-diem</strong> (GSA), <strong>ground transport</strong> (Rome2Rio), and <strong>events</strong> (Luma). Wally validates answers against these first, with truth and accuracy as the #1 rule. Edit them, reorder, or add your own.</p>
+                <p class="text-[11px] text-slate-400 mt-1">One URL per line. Pre-loaded with an executive-assistant toolkit &mdash; one trusted source per pre-trip check: <strong>flights</strong> (Google Flights), <strong>lodging</strong> (Booking.com), <strong>what&rsquo;s on</strong> (Time Out), <strong>entry &amp; safety</strong> (travel.state.gov), and <strong>activities</strong> (Viator). Wally validates answers against these first, with truth and accuracy as the #1 rule. Edit them, reorder, or add your own.</p>
               </div>
 
               <div class="full">
@@ -5364,6 +5324,14 @@
               sendMessage(idx);
               break;
             }
+            case 'use-example': {
+              const t = act.dataset.text || '';
+              if (t.trim()) {
+                STATE.slots[0].inputText = t;
+                sendMessage(0);
+              }
+              break;
+            }
             case 'toggle-listen': toggleListening(); break;
             case 'set-audio-mode': {
               const m = act.dataset.mode === 'one-way' ? 'one-way' : 'two-way';
@@ -5643,6 +5611,8 @@
       }
       // Listening always starts OFF: turning it on needs a click anyway
       // (the screen-share picker requires a user gesture).
-    </script>
-  </body>
+  }
+}
+</script>
+</body>
 </html>
