@@ -1,0 +1,15 @@
+# Cloudflare Worker config for the live-research proxy (worker.js).
+# Deploy:  npx wrangler deploy
+# Secret:  npx wrangler secret put ANTHROPIC_API_KEY
+name = "city-planner-research"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Optional non-secret config. The API key is NOT set here — it is a secret
+# (wrangler secret put ANTHROPIC_API_KEY) so it never lands in source control.
+[vars]
+MODEL = "claude-opus-4-8"
+MAX_SEARCHES = "5"
+# Lock this to your deployed site origin once you know it, e.g.
+# ALLOW_ORIGIN = "https://your-site.example.com"
+ALLOW_ORIGIN = "*"
