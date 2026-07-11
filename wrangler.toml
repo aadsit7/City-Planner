@@ -1,6 +1,11 @@
 # Cloudflare Worker config for the live-research proxy (worker.js).
 # Deploy:  npx wrangler deploy
 # Secret:  npx wrangler secret put ANTHROPIC_API_KEY
+#
+# The worker name is kept as "city-planner-research" so an existing deployment
+# (and its URL + stored secret) keeps working after this app was remade into
+# the Lake Tapps Family Event Finder. Rename it if you prefer — you'll get a
+# new URL and must re-run `wrangler secret put ANTHROPIC_API_KEY`.
 name = "city-planner-research"
 main = "worker.js"
 compatibility_date = "2024-11-01"
@@ -9,7 +14,9 @@ compatibility_date = "2024-11-01"
 # (wrangler secret put ANTHROPIC_API_KEY) so it never lands in source control.
 [vars]
 MODEL = "claude-opus-4-8"
-MAX_SEARCHES = "5"
+# The research spec requires cross-checking official sources, cancellation
+# checks, and opening real event pages — give it enough searches per answer.
+MAX_SEARCHES = "8"
 # Lock this to your deployed site origin once you know it, e.g.
 # ALLOW_ORIGIN = "https://your-site.example.com"
 ALLOW_ORIGIN = "*"

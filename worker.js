@@ -1,16 +1,14 @@
 /**
- * City Trip Intelligence Planner — live-research proxy (Cloudflare Worker).
+ * Lake Tapps Family Event Finder — live-research proxy (Cloudflare Worker).
  *
  * Why this exists
  * ---------------
- * The web app's built-in answer helper (window.claude.complete) answers only
- * from the model's training knowledge — it has no web access. To genuinely
- * research a city + date (current events, festival dates, advisories, transit
- * disruptions, prices), the request has to reach the Anthropic Messages API
- * with the web_search tool enabled. That requires an API key, which must never
- * ship in the browser. This Worker is the server-side seam: it holds the key
- * as a secret, runs the search, and returns a grounded answer plus the source
- * URLs the model actually used.
+ * The event researcher's whole job is *current, verified* family events —
+ * today's hours, this weekend's sessions, cancellations, sold-out notices.
+ * That requires the Anthropic Messages API with the web_search tool enabled,
+ * and the API key must never ship in the browser. This Worker is the
+ * server-side seam: it holds the key as a secret, runs the searches, and
+ * returns a grounded answer plus the source URLs the model actually used.
  *
  * Deploy (see RESEARCH.md for the full walkthrough)
  * -------------------------------------------------
@@ -27,7 +25,8 @@
  * Config via environment variables (all optional except the secret):
  *   ANTHROPIC_API_KEY  (secret, required)  — your Anthropic API key
  *   MODEL              — model id (default: claude-opus-4-8)
- *   MAX_SEARCHES       — web searches per answer (default: 5)
+ *   MAX_SEARCHES       — web searches per answer (default: 8; the research
+ *                        spec demands cross-checking, so keep this generous)
  *   ALLOW_ORIGIN       — CORS allow-origin (default: "*"; set to your site URL to lock it down)
  */
 
@@ -35,7 +34,7 @@ const API_URL = 'https://api.anthropic.com/v1/messages';
 const API_VERSION = '2023-06-01';
 // web_search_20260209 (dynamic filtering) needs Opus 4.8/4.7/4.6 or Sonnet 4.6.
 const SEARCH_TOOL_TYPE = 'web_search_20260209';
-const MAX_TURNS = 6; // safety cap on the server-tool pause/resume loop
+const MAX_TURNS = 8; // safety cap on the server-tool pause/resume loop
 
 export default {
   async fetch(request, env) {
@@ -73,8 +72,10 @@ export default {
     }
 
     const model = env.MODEL || 'claude-opus-4-8';
-    const maxUses = Number(env.MAX_SEARCHES) || 5;
-    const maxTokens = Math.min(Math.max(Number(body.maxTokens) || 1500, 256), 8000);
+    const maxUses = Number(env.MAX_SEARCHES) || 8;
+    // The required output format (Best Matches, Sporting Events, comparison
+    // table, sources, confidence) is long — default high, clamp generously.
+    const maxTokens = Math.min(Math.max(Number(body.maxTokens) || 6000, 256), 8000);
 
     const tool = { type: SEARCH_TOOL_TYPE, name: 'web_search', max_uses: maxUses };
     const allowedDomains = Array.isArray(body.allowedDomains)
@@ -145,7 +146,7 @@ export default {
       return json({ error: 'Proxy request failed: ' + (err && err.message || err) }, 502, cors);
     }
 
-    return json({ reply: replyText.trim(), sources: Array.from(sources).slice(0, 8) }, 200, cors);
+    return json({ reply: replyText.trim(), sources: Array.from(sources).slice(0, 12) }, 200, cors);
   },
 };
 
