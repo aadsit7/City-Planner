@@ -350,6 +350,20 @@
     max-width: 46vw;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--tint);
+    background: color-mix(in srgb, var(--tint) 12%, transparent);
+    border-radius: 999px;
+    padding: 3px 10px;
+    margin-left: auto;          /* pin to the end of the meta row */
+  }
+  .copy-btn svg { width: 13px; height: 13px; }
+  .copy-btn.done { color: var(--green); background: color-mix(in srgb, var(--green) 14%, transparent); }
 
   /* ------------------------------------------------------------
      Composer — iMessage style
@@ -379,7 +393,7 @@
     background: var(--card);
     border: .5px solid var(--separator);
     border-radius: 19px;
-    padding: 8px 44px 8px 15px;
+    padding: 8px 80px 8px 15px; /* room for mic + send */
     max-height: 120px;
     outline: none;
     appearance: none;
@@ -398,6 +412,28 @@
   }
   .send-btn:disabled { opacity: .35; }
   .send-btn svg { width: 16px; height: 16px; }
+  .mic-btn {
+    position: absolute;
+    right: 40px;
+    bottom: 4px;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    color: var(--label-2);
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s;
+  }
+  .mic-btn svg { width: 18px; height: 18px; }
+  .mic-btn.hidden { display: none; }
+  .mic-btn.listening {
+    background: var(--red);
+    color: #fff;
+    animation: mic-pulse 1.4s infinite;
+  }
+  @keyframes mic-pulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--red) 45%, transparent); }
+    70%  { box-shadow: 0 0 0 10px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
 
   /* ------------------------------------------------------------
      Settings — iOS sheet with grouped lists
@@ -544,6 +580,9 @@
 <div class="composer-bar">
   <div class="composer">
     <textarea id="input" rows="1" placeholder="Ask about family events" enterkeyhint="send"></textarea>
+    <button class="mic-btn" id="micBtn" aria-label="Dictate">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
     <button class="send-btn" id="sendBtn" aria-label="Send" disabled>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
     </button>
@@ -1324,7 +1363,9 @@ const ICONS = {
   chip: '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/>',
   chev: '<polyline points="9 18 15 12 9 6"/>',
   warn: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
-  spark: '<path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/>'
+  spark: '<path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/>',
+  copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>'
 };
 
 function svg(name, sw) {
@@ -1569,7 +1610,7 @@ function messageEl(m) {
     md.className = 'md';
     md.innerHTML = mdToHtml(m.content);
     bubble.appendChild(md);
-    if (m.live || (m.sources && m.sources.length)) {
+    if (!m.error) {
       const meta = document.createElement('div');
       meta.className = 'meta-row';
       if (m.live) {
@@ -1588,11 +1629,58 @@ function messageEl(m) {
         a.title = url;
         meta.appendChild(a);
       }
+      meta.appendChild(copyButton(m.content));
       bubble.appendChild(meta);
     }
   }
   wrap.appendChild(bubble);
   return wrap;
+}
+
+/* Copy an answer as clean, shareable plain text */
+
+function mdToPlain(md) {
+  return String(md || '')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1 ($2)')  // links → "text (url)"
+    .replace(/\*\*([^*]+)\*\*/g, '$1')                             // strip bold
+    .replace(/^#{1,4}\s+/gm, '')                                   // strip heading marks
+    .replace(/^\|[\s:|-]+\|$/gm, '')                               // drop table separator rows
+    .replace(/^\s*\|(.+)\|\s*$/gm, (_, r) =>                       // table rows → " · " joined
+      r.split('|').map(c => c.trim()).filter(Boolean).join(' · '))
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    // Fallback for older WebKit / non-secure contexts
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch {}
+    ta.remove();
+    return ok;
+  }
+}
+
+function copyButton(content) {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  const idle = svg('copy', 2) + '<span>Copy</span>';
+  btn.innerHTML = idle;
+  btn.addEventListener('click', async () => {
+    const ok = await copyText(mdToPlain(content));
+    btn.classList.add('done');
+    btn.innerHTML = svg('check', 2.6) + '<span>' + (ok ? 'Copied' : 'Press & hold to copy') + '</span>';
+    setTimeout(() => { btn.classList.remove('done'); btn.innerHTML = idle; }, 1800);
+  });
+  return btn;
 }
 
 function workingEl() {
@@ -1716,10 +1804,60 @@ sendBtn.addEventListener('click', submit);
 function submit() {
   const q = inputEl.value;
   if (!q.trim() || state.busy) return;
+  if (listening && recog) recog.stop();
   inputEl.value = '';
   autoGrow();
   updateSendBtn();
   send(q);
+}
+
+/* ------------------------------------------------------------
+ * Voice input — Web Speech API (on iOS this is Apple's own
+ * dictation engine, so recognition quality matches the keyboard mic)
+ * ------------------------------------------------------------ */
+
+const micBtn = document.getElementById('micBtn');
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog = null;
+let listening = false;
+let dictationBase = '';   // text already in the box when dictation starts
+
+if (!SR) {
+  micBtn.classList.add('hidden');   // browser can't dictate — hide cleanly
+} else {
+  recog = new SR();
+  recog.lang = 'en-US';
+  recog.interimResults = true;      // words appear live as you speak
+  recog.continuous = false;         // stops naturally when you pause
+
+  recog.onresult = e => {
+    let transcript = '';
+    for (const res of e.results) transcript += res[0].transcript;
+    inputEl.value = dictationBase + transcript;
+    autoGrow();
+    updateSendBtn();
+  };
+  recog.onend = () => setListening(false);
+  recog.onerror = e => {
+    setListening(false);
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      inputEl.placeholder = 'Microphone blocked — allow it in Settings › Safari';
+      setTimeout(() => { inputEl.placeholder = 'Ask about family events'; }, 4000);
+    }
+  };
+
+  micBtn.addEventListener('click', () => {
+    if (listening) { recog.stop(); return; }
+    dictationBase = inputEl.value ? inputEl.value.replace(/\s*$/, ' ') : '';
+    try { recog.start(); setListening(true); } catch { /* already started */ }
+  });
+}
+
+function setListening(on) {
+  listening = on;
+  micBtn.classList.toggle('listening', on);
+  micBtn.setAttribute('aria-label', on ? 'Stop dictation' : 'Dictate');
+  inputEl.placeholder = on ? 'Listening…' : 'Ask about family events';
 }
 
 document.getElementById('newChatBtn').addEventListener('click', () => {
