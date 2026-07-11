@@ -2,342 +2,594 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Event Finder">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f2f7">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
 <title>Lake Tapps Family Event Finder</title>
 <style>
+  /* ------------------------------------------------------------
+     iOS system palette (Human Interface Guidelines)
+     ------------------------------------------------------------ */
   :root {
-    --bg: #f4f6f4;
-    --surface: #ffffff;
-    --ink: #1d2b24;
-    --ink-soft: #5b6b62;
-    --line: #dde5df;
-    --accent: #1f7a5c;
-    --accent-soft: #e3f2ec;
-    --accent-ink: #135843;
-    --warn-bg: #fdf3e3;
-    --warn-ink: #8a5a12;
-    --user-bubble: #1f7a5c;
-    --radius: 14px;
-    --shadow: 0 1px 3px rgba(20, 40, 30, .08), 0 6px 20px rgba(20, 40, 30, .05);
+    --bg: #f2f2f7;                    /* systemGroupedBackground */
+    --card: #ffffff;                  /* secondarySystemGroupedBackground */
+    --fill: rgba(120,120,128,.12);    /* systemFill (quaternary) */
+    --fill-strong: rgba(120,120,128,.2);
+    --label: #000000;
+    --label-2: rgba(60,60,67,.6);     /* secondaryLabel */
+    --label-3: rgba(60,60,67,.3);     /* tertiaryLabel */
+    --separator: rgba(60,60,67,.29);
+    --tint: #007aff;                  /* systemBlue */
+    --tint-press: #0062cc;
+    --green: #34c759;
+    --orange: #ff9500;
+    --red: #ff3b30;
+    --indigo: #5856d6;
+    --teal: #30b0c7;
+    --yellow-bg: #fff8e1;
+    --yellow-ink: #8a6d1a;
+    --bubble-user: #007aff;
+    --nav-bg: rgba(249,249,249,.82);
+    --sheet-bg: #f2f2f7;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #131a16;
-      --surface: #1c2620;
-      --ink: #e7eeea;
-      --ink-soft: #9db0a6;
-      --line: #2c3a32;
-      --accent: #4cc294;
-      --accent-soft: #1d3a2f;
-      --accent-ink: #8fdec0;
-      --warn-bg: #3a2f18;
-      --warn-ink: #e8c073;
-      --user-bubble: #23604a;
-      --shadow: 0 1px 3px rgba(0,0,0,.35), 0 6px 20px rgba(0,0,0,.25);
+      --bg: #000000;
+      --card: #1c1c1e;
+      --fill: rgba(120,120,128,.24);
+      --fill-strong: rgba(120,120,128,.36);
+      --label: #ffffff;
+      --label-2: rgba(235,235,245,.6);
+      --label-3: rgba(235,235,245,.3);
+      --separator: rgba(84,84,88,.6);
+      --tint: #0a84ff;
+      --tint-press: #3395ff;
+      --green: #30d158;
+      --orange: #ff9f0a;
+      --red: #ff453a;
+      --indigo: #5e5ce6;
+      --teal: #40c8e0;
+      --yellow-bg: #2c2415;
+      --yellow-ink: #ffd60a;
+      --bubble-user: #0a84ff;
+      --nav-bg: rgba(18,18,20,.82);
+      --sheet-bg: #1c1c1e;
     }
   }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
   body {
     margin: 0;
-    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--ink);
+    height: 100dvh;
+    min-height: 100vh;
+    max-height: 100dvh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--label);
+    font: 17px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
   }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  button:active { opacity: .5; }
 
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--line);
-    padding: 12px 18px;
+  /* ------------------------------------------------------------
+     Navigation bar — frosted, hairline separator
+     ------------------------------------------------------------ */
+  .nav {
+    position: relative;
+    z-index: 10;
+    padding-top: env(safe-area-inset-top);
+    background: var(--nav-bg);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    box-shadow: 0 .33px 0 var(--separator);
+    flex-shrink: 0;
+  }
+  .nav-row {
+    height: 48px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 0 6px;
+  }
+  .nav-title {
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .nav-btns { display: flex; }
+  .nav-btns.leading { justify-content: flex-start; }
+  .nav-btns.trailing { justify-content: flex-end; }
+  .icon-btn {
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
+    justify-content: center;
+    color: var(--tint);
+    border-radius: 50%;
   }
-  .brand { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-  .brand h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
-  .brand .sub { font-size: 12.5px; color: var(--ink-soft); }
-  .spacer { flex: 1; }
-  .clock {
-    font-size: 12.5px;
-    background: var(--accent-soft);
-    color: var(--accent-ink);
-    border-radius: 999px;
-    padding: 5px 12px;
+  .icon-btn svg { width: 22px; height: 22px; }
+  .nav-sub {
+    text-align: center;
+    font-size: 12px;
+    color: var(--label-2);
+    padding: 0 16px 7px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .hdr-btn {
-    border: 1px solid var(--line);
-    background: var(--surface);
-    color: var(--ink);
-    border-radius: 10px;
-    padding: 7px 13px;
-    font-size: 13px;
-    cursor: pointer;
-  }
-  .hdr-btn:hover { border-color: var(--accent); color: var(--accent-ink); }
 
+  /* ------------------------------------------------------------
+     Scrolling content
+     ------------------------------------------------------------ */
   main {
     flex: 1;
     overflow-y: auto;
-    padding: 22px 14px 30px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
   }
-  .thread { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  .thread {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 14px 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-  /* Welcome card */
-  .welcome {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 26px 26px 22px;
+  /* ------------------------------------------------------------
+     Empty state — hero + Siri-style suggestion list
+     ------------------------------------------------------------ */
+  .hero { text-align: center; padding: 26px 8px 4px; }
+  .hero-icon {
+    width: 74px; height: 74px;
+    margin: 0 auto 14px;
+    border-radius: 17px;
+    background: linear-gradient(180deg, #34c759, #1f9d4d);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 18px rgba(52,199,89,.35);
   }
-  .welcome h2 { margin: 0 0 6px; font-size: 20px; }
-  .welcome p { margin: 0 0 14px; color: var(--ink-soft); max-width: 62ch; }
-  .facts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .hero-icon svg { width: 40px; height: 40px; color: #fff; }
+  .hero h1 {
+    margin: 0 0 4px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  .hero p {
+    margin: 0 auto;
+    max-width: 34ch;
+    font-size: 15px;
+    color: var(--label-2);
+  }
+
+  .facts {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 14px 2px 2px;
+  }
+  .facts::-webkit-scrollbar { display: none; }
   .fact {
-    font-size: 12.5px;
-    background: var(--accent-soft);
-    color: var(--accent-ink);
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--label-2);
+    background: var(--fill);
     border-radius: 999px;
-    padding: 4px 11px;
+    padding: 5px 11px;
+    white-space: nowrap;
   }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chip {
-    border: 1px solid var(--line);
-    background: var(--bg);
-    color: var(--ink);
-    border-radius: 999px;
-    padding: 8px 14px;
-    font-size: 13.5px;
-    cursor: pointer;
-    text-align: left;
-  }
-  .chip:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
 
-  .notice {
-    background: var(--warn-bg);
-    color: var(--warn-ink);
-    border-radius: 10px;
-    padding: 10px 14px;
+  .section-hdr {
     font-size: 13px;
-    margin-top: 16px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--label-2);
+    padding: 16px 16px 7px;
   }
+  .group {
+    background: var(--card);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .srow {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    min-height: 44px;
+    text-align: left;
+    position: relative;
+  }
+  .srow + .srow::before {
+    content: '';
+    position: absolute;
+    left: 55px; right: 0; top: 0;
+    height: .33px;
+    background: var(--separator);
+  }
+  .srow:active { background: var(--fill); opacity: 1; }
+  .srow .app-ic {
+    width: 29px; height: 29px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .srow .app-ic svg { width: 17px; height: 17px; color: #fff; }
+  .srow .txt { flex: 1; font-size: 16px; }
+  .srow .chev { color: var(--label-3); flex-shrink: 0; }
+  .srow .chev svg { width: 14px; height: 14px; }
 
-  /* Messages */
-  .msg { display: flex; }
-  .msg.user { justify-content: flex-end; }
-  .bubble {
-    max-width: 92%;
-    border-radius: var(--radius);
-    padding: 12px 16px;
-    overflow-wrap: break-word;
-  }
-  .msg.user .bubble {
-    background: var(--user-bubble);
-    color: #fff;
-    white-space: pre-wrap;
-    max-width: 78%;
-  }
-  .msg.assistant .bubble {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    box-shadow: var(--shadow);
+  .banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--yellow-bg);
+    color: var(--yellow-ink);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 13px;
+    line-height: 1.45;
+    text-align: left;
     width: 100%;
   }
-  .msg.assistant .bubble.error { border-color: #c96a5a; }
+  .banner svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+  .banner b { font-weight: 650; }
 
-  /* Rendered markdown */
-  .md h1 { font-size: 19px; margin: 4px 0 10px; }
-  .md h2 { font-size: 16.5px; margin: 20px 0 8px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--accent-ink); }
-  .md h3 { font-size: 15px; margin: 14px 0 6px; }
-  .md p { margin: 8px 0; }
-  .md ul { margin: 6px 0 10px; padding-left: 22px; }
-  .md li { margin: 3px 0; }
-  .md a { color: var(--accent); }
-  .md hr { border: 0; border-top: 1px solid var(--line); margin: 14px 0; }
+  .foot-note {
+    font-size: 12px;
+    color: var(--label-3);
+    text-align: center;
+    padding: 6px 20px 0;
+  }
+
+  /* ------------------------------------------------------------
+     Chat bubbles
+     ------------------------------------------------------------ */
+  .msg { display: flex; }
+  .msg.user { justify-content: flex-end; }
+  .msg.user .bubble {
+    background: var(--bubble-user);
+    color: #fff;
+    border-radius: 18px;
+    border-bottom-right-radius: 5px;
+    padding: 9px 14px;
+    max-width: 80%;
+    white-space: pre-wrap;
+    font-size: 16px;
+  }
+  .msg.assistant .bubble {
+    background: var(--card);
+    border-radius: 18px;
+    border-bottom-left-radius: 5px;
+    padding: 13px 15px;
+    width: 100%;
+    font-size: 15.5px;
+  }
+  .msg.assistant .bubble.error { box-shadow: inset 0 0 0 1px var(--red); }
+
+  .typing {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--card);
+    border-radius: 18px;
+    border-bottom-left-radius: 5px;
+    padding: 14px 16px;
+  }
+  .typing i {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--label-3);
+    animation: blink 1.3s infinite ease-in-out;
+  }
+  .typing i:nth-child(2) { animation-delay: .18s; }
+  .typing i:nth-child(3) { animation-delay: .36s; }
+  @keyframes blink { 0%,70%,100% { opacity: .3; transform: scale(.85);} 35% { opacity: 1; transform: scale(1);} }
+  .typing-note { font-size: 12px; color: var(--label-3); padding: 6px 4px 0; }
+
+  /* ------------------------------------------------------------
+     Markdown inside assistant bubbles
+     ------------------------------------------------------------ */
+  .md h1 { font-size: 20px; font-weight: 700; letter-spacing: -.02em; margin: 2px 0 10px; }
+  .md h2 {
+    font-size: 16px; font-weight: 650;
+    margin: 18px 0 6px; padding-top: 12px;
+    border-top: .33px solid var(--separator);
+  }
+  .md h3 { font-size: 15px; font-weight: 650; margin: 12px 0 4px; }
+  .md p { margin: 7px 0; }
+  .md ul { margin: 5px 0 9px; padding-left: 20px; }
+  .md li { margin: 2.5px 0; }
+  .md a { color: var(--tint); text-decoration: none; word-break: break-all; }
+  .md hr { border: 0; border-top: .33px solid var(--separator); margin: 12px 0; }
   .md strong { font-weight: 650; }
-  .md blockquote { margin: 8px 0; padding: 6px 12px; border-left: 3px solid var(--accent); color: var(--ink-soft); }
-  .md .tbl-wrap { overflow-x: auto; margin: 10px 0; }
-  .md table { border-collapse: collapse; font-size: 13.5px; min-width: 100%; }
-  .md th, .md td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
-  .md th { background: var(--accent-soft); color: var(--accent-ink); }
+  .md blockquote { margin: 7px 0; padding: 4px 12px; border-left: 3px solid var(--tint); color: var(--label-2); }
+  .md .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 9px 0; border-radius: 8px; }
+  .md table { border-collapse: collapse; font-size: 13px; min-width: 100%; }
+  .md th, .md td { border: .33px solid var(--separator); padding: 6px 9px; text-align: left; vertical-align: top; white-space: nowrap; }
+  .md td { white-space: normal; min-width: 72px; }
+  .md th { background: var(--fill); font-weight: 600; }
 
   .meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px dashed var(--line);
-    font-size: 12px;
-    color: var(--ink-soft);
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    margin-top: 11px; padding-top: 9px;
+    border-top: .33px dashed var(--separator);
   }
   .badge {
-    background: var(--accent-soft);
-    color: var(--accent-ink);
+    font-size: 11px; font-weight: 650;
+    color: var(--green);
+    background: color-mix(in srgb, var(--green) 14%, transparent);
     border-radius: 999px;
-    padding: 2px 9px;
-    font-weight: 600;
+    padding: 3px 9px;
   }
   .src {
-    border: 1px solid var(--line);
+    font-size: 11.5px;
+    color: var(--label-2);
+    background: var(--fill);
     border-radius: 999px;
-    padding: 2px 9px;
-    color: var(--ink-soft);
+    padding: 3px 9px;
     text-decoration: none;
-    max-width: 240px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: inline-block;
-    vertical-align: middle;
+    max-width: 46vw;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .src:hover { color: var(--accent-ink); border-color: var(--accent); }
 
-  /* Working indicator */
-  .working { display: flex; align-items: center; gap: 10px; color: var(--ink-soft); font-size: 13.5px; padding: 4px 2px; }
-  .dots { display: inline-flex; gap: 4px; }
-  .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s infinite ease-in-out; }
-  .dots i:nth-child(2) { animation-delay: .2s; }
-  .dots i:nth-child(3) { animation-delay: .4s; }
-  @keyframes pulse { 0%, 80%, 100% { opacity: .25; transform: scale(.8);} 40% { opacity: 1; transform: scale(1);} }
-
-  /* Composer */
-  .composer-wrap {
-    background: var(--surface);
-    border-top: 1px solid var(--line);
-    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  /* ------------------------------------------------------------
+     Composer — iMessage style
+     ------------------------------------------------------------ */
+  .composer-bar {
+    flex-shrink: 0;
+    background: var(--nav-bg);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    box-shadow: 0 -.33px 0 var(--separator);
+    padding: 7px 12px calc(7px + env(safe-area-inset-bottom));
   }
   .composer {
-    max-width: 860px;
+    max-width: 700px;
     margin: 0 auto;
+    position: relative;
     display: flex;
-    gap: 10px;
     align-items: flex-end;
   }
   .composer textarea {
     flex: 1;
     resize: none;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: var(--bg);
-    color: var(--ink);
-    padding: 11px 14px;
     font: inherit;
-    max-height: 160px;
+    font-size: 17px;            /* ≥16px prevents iOS focus zoom */
+    line-height: 1.35;
+    color: var(--label);
+    background: var(--card);
+    border: .5px solid var(--separator);
+    border-radius: 19px;
+    padding: 8px 44px 8px 15px;
+    max-height: 120px;
     outline: none;
+    appearance: none;
   }
-  .composer textarea:focus { border-color: var(--accent); }
-  .send {
-    border: 0;
-    background: var(--accent);
+  .composer textarea::placeholder { color: var(--label-3); }
+  .send-btn {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--tint);
     color: #fff;
-    border-radius: 12px;
-    padding: 11px 18px;
-    font-size: 14.5px;
-    font-weight: 600;
-    cursor: pointer;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity .15s;
   }
-  .send:disabled { opacity: .5; cursor: default; }
-  .hint { max-width: 860px; margin: 6px auto 0; font-size: 11.5px; color: var(--ink-soft); text-align: center; }
+  .send-btn:disabled { opacity: .35; }
+  .send-btn svg { width: 16px; height: 16px; }
 
-  /* Settings dialog */
-  dialog {
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface);
-    color: var(--ink);
-    width: min(720px, calc(100vw - 32px));
-    max-height: calc(100vh - 64px);
+  /* ------------------------------------------------------------
+     Settings — iOS sheet with grouped lists
+     ------------------------------------------------------------ */
+  dialog.sheet {
+    border: 0;
     padding: 0;
-    box-shadow: var(--shadow);
-  }
-  dialog::backdrop { background: rgba(10, 20, 15, .45); }
-  .dlg-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--line); }
-  .dlg-head h2 { margin: 0; font-size: 16px; }
-  .dlg-body { padding: 16px 20px 20px; overflow-y: auto; max-height: calc(100vh - 200px); }
-  .field { margin-bottom: 18px; }
-  .field label { display: block; font-size: 13px; font-weight: 650; margin-bottom: 5px; }
-  .field .help { font-size: 12px; color: var(--ink-soft); margin: 4px 0 0; }
-  .field input[type=text], .field textarea {
     width: 100%;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--bg);
-    color: var(--ink);
-    padding: 9px 12px;
-    font: inherit;
-    font-size: 13px;
+    max-width: 100%;
+    height: auto;
+    max-height: 93dvh;
+    margin: auto 0 0;
+    background: var(--sheet-bg);
+    color: var(--label);
+    border-radius: 12px 12px 0 0;
+    display: none;
+    flex-direction: column;
   }
-  .field textarea.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.5; }
-  .row { display: flex; align-items: center; gap: 8px; }
-  .dlg-foot { display: flex; gap: 10px; justify-content: flex-end; padding: 14px 20px; border-top: 1px solid var(--line); }
-  .btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 8px 16px; font-size: 13.5px; cursor: pointer; }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
-  .btn.subtle { color: var(--ink-soft); }
+  dialog.sheet[open] { display: flex; animation: sheet-up .32s cubic-bezier(.32,.72,.35,1); }
+  @keyframes sheet-up { from { transform: translateY(40%); opacity: .6; } to { transform: none; opacity: 1; } }
+  dialog.sheet::backdrop { background: rgba(0,0,0,.42); }
+  @media (min-width: 700px) {
+    dialog.sheet { max-width: 580px; margin: auto; border-radius: 14px; max-height: 86dvh; }
+  }
+  .sheet-nav {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 12px 16px 10px;
+    box-shadow: 0 .33px 0 var(--separator);
+  }
+  .sheet-nav .ttl { text-align: center; font-size: 17px; font-weight: 600; }
+  .sheet-nav .txt-btn { color: var(--tint); font-size: 17px; }
+  .sheet-nav .txt-btn.bold { font-weight: 650; text-align: right; }
+  .sheet-body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  .sheet-body .foot {
+    font-size: 12.5px;
+    color: var(--label-2);
+    padding: 7px 16px 0;
+    line-height: 1.45;
+  }
+  .g-input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--label);
+    font: inherit;
+    font-size: 16px;
+    padding: 12px 14px;
+    outline: none;
+    appearance: none;
+  }
+  .g-input::placeholder { color: var(--label-3); }
+  .g-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    padding: 11px 14px;
+    min-height: 44px;
+    position: relative;
+  }
+  .g-row + .g-row::before, .g-row + .g-ta::before {
+    content: ''; position: absolute; left: 14px; right: 0; top: 0;
+    height: .33px; background: var(--separator);
+  }
+  .g-row .lbl { font-size: 16px; }
+  .g-ta { position: relative; display: block; }
+  .g-ta textarea {
+    display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--label);
+    font: 12px/1.5 ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    padding: 11px 14px;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+  }
+  .g-btn-row {
+    display: block; width: 100%;
+    text-align: center;
+    font-size: 16px;
+    color: var(--tint);
+    padding: 12px 14px;
+    position: relative;
+  }
+  .g-btn-row:active { background: var(--fill); opacity: 1; }
+
+  /* iOS switch */
+  .switch {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 51px; height: 31px;
+    border-radius: 16px;
+    background: var(--fill-strong);
+    position: relative;
+    transition: background .2s;
+    flex-shrink: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .switch:checked { background: var(--green); }
+  .switch::before {
+    content: '';
+    position: absolute;
+    width: 27px; height: 27px;
+    border-radius: 50%;
+    background: #fff;
+    top: 2px; left: 2px;
+    box-shadow: 0 3px 8px rgba(0,0,0,.15), 0 1px 1px rgba(0,0,0,.16);
+    transition: transform .2s;
+  }
+  .switch:checked::before { transform: translateX(20px); }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="brand">
-    <h1>Lake Tapps Family Event Finder</h1>
-    <div class="sub">Verified, current family activities near ZIP 98391 &middot; tuned for a 10-year-old</div>
+<div class="nav">
+  <div class="nav-row">
+    <div class="nav-btns leading">
+      <button class="icon-btn" id="newChatBtn" aria-label="New search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+    </div>
+    <div class="nav-title">Family Events</div>
+    <div class="nav-btns trailing">
+      <button class="icon-btn" id="settingsBtn" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
   </div>
-  <div class="spacer"></div>
-  <div class="clock" id="clock" title="Current local time in Lake Tapps, WA — sent with every search so past events are filtered out">&nbsp;</div>
-  <button class="hdr-btn" id="newChatBtn" title="Clear this conversation">New search</button>
-  <button class="hdr-btn" id="settingsBtn">Settings</button>
-</header>
+  <div class="nav-sub"><span id="clock">&nbsp;</span> · Lake Tapps 98391</div>
+</div>
 
 <main id="main">
   <div class="thread" id="thread"></div>
 </main>
 
-<div class="composer-wrap">
+<div class="composer-bar">
   <div class="composer">
-    <textarea id="input" rows="1" placeholder="e.g. What can we do with our 10-year-old this Saturday afternoon?"></textarea>
-    <button class="send" id="sendBtn">Search</button>
+    <textarea id="input" rows="1" placeholder="Ask about family events" enterkeyhint="send"></textarea>
+    <button class="send-btn" id="sendBtn" aria-label="Send" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+    </button>
   </div>
-  <div class="hint">Every answer is filtered against the current Pacific time — events that already ended are excluded. Details can change; confirm with the official source before heading out.</div>
 </div>
 
-<dialog id="settingsDlg">
-  <div class="dlg-head">
-    <h2>Settings</h2>
-    <button class="btn subtle" id="dlgClose">Close</button>
+<dialog class="sheet" id="settingsDlg">
+  <div class="sheet-nav">
+    <button class="txt-btn" id="dlgCancel">Cancel</button>
+    <div class="ttl">Settings</div>
+    <button class="txt-btn bold" id="dlgDone">Done</button>
   </div>
-  <div class="dlg-body">
-    <div class="field">
-      <label for="setProxy">Live research proxy URL</label>
-      <input type="text" id="setProxy" placeholder="https://city-planner-research.your-subdomain.workers.dev">
-      <p class="help">The Cloudflare Worker from <strong>RESEARCH.md</strong>. It holds the API key server-side and runs real web searches, which is what makes answers current and verifiable. Leave blank to fall back to model knowledge only (no live verification — not recommended for time-sensitive plans).</p>
+  <div class="sheet-body">
+
+    <div class="section-hdr">Live research</div>
+    <div class="group">
+      <input type="url" class="g-input" id="setProxy" placeholder="Worker URL (https://…workers.dev)"
+             autocomplete="off" autocapitalize="off" spellcheck="false">
     </div>
-    <div class="field">
-      <div class="row">
-        <input type="checkbox" id="setRestrict">
-        <label for="setRestrict" style="margin:0">Restrict web searches to the priority source list below</label>
+    <p class="foot">The Cloudflare Worker from RESEARCH.md. It keeps the API key server-side and runs real web searches — that's what makes answers current and verifiable. Leave blank for model-knowledge answers only (not recommended for time-sensitive plans).</p>
+
+    <div class="section-hdr">Search sources</div>
+    <div class="group">
+      <div class="g-row">
+        <span class="lbl">Restrict to priority sources</span>
+        <input type="checkbox" class="switch" id="setRestrict">
       </div>
-      <p class="help">Off by default. The researcher already prioritizes official local sources via its instructions; restricting can block organizer pages it needs for verification. Turn on only if you want searches confined to these domains.</p>
+      <label class="g-ta">
+        <textarea id="setDomains" rows="6" autocapitalize="off" spellcheck="false"></textarea>
+      </label>
     </div>
-    <div class="field">
-      <label for="setDomains">Priority source domains (one per line)</label>
-      <textarea id="setDomains" class="mono" rows="8"></textarea>
+    <p class="foot">Off by default — the researcher already checks these official local sources first, and restricting can block the organizer pages it needs for verification. One domain per line.</p>
+
+    <div class="section-hdr">Researcher instructions</div>
+    <div class="group">
+      <label class="g-ta" style="display:block">
+        <textarea id="setInstructions" rows="10" autocapitalize="off" spellcheck="false"></textarea>
+      </label>
     </div>
-    <div class="field">
-      <label for="setInstructions">Researcher instructions</label>
-      <textarea id="setInstructions" class="mono" rows="14"></textarea>
-      <p class="help">The full research spec sent as the system prompt. Edit carefully — the time-filtering, verification, and output-format rules live here.</p>
+    <p class="foot">The full research spec sent as the system prompt. The time-filtering, verification, and output-format rules live here — edit carefully.</p>
+
+    <div class="section-hdr">&nbsp;</div>
+    <div class="group">
+      <button class="g-btn-row" id="dlgReset">Reset to Defaults</button>
     </div>
-  </div>
-  <div class="dlg-foot">
-    <button class="btn" id="dlgReset">Reset to defaults</button>
-    <button class="btn primary" id="dlgSave">Save</button>
+
   </div>
 </dialog>
 
@@ -1053,14 +1305,32 @@ The goal is not the largest possible list.
 
 The goal is the most useful, current, relevant, and trustworthy list of activities for a Lake Tapps family with a 10-year-old child.`;
 
-const QUICK_PROMPTS = [
-  "What's happening today?",
-  "What can we do this weekend?",
-  "Free or low-cost events in the next 7 days",
-  "Any pro or minor-league games we could go watch soon?",
-  "Indoor activities for a rainy day this week",
-  "STEM, LEGO, or coding events for a 10-year-old"
+// Siri-suggestion-style rows: label doubles as the query sent.
+const SUGGESTIONS = [
+  { color: 'var(--tint)',   icon: 'calendar', text: "What's happening today?" },
+  { color: 'var(--orange)', icon: 'sun',      text: "What can we do this weekend?" },
+  { color: 'var(--green)',  icon: 'dollar',   text: "Free or low-cost events this week" },
+  { color: 'var(--red)',    icon: 'trophy',   text: "Pro or minor-league games to watch soon" },
+  { color: 'var(--teal)',   icon: 'rain',     text: "Indoor ideas for a rainy day" },
+  { color: 'var(--indigo)', icon: 'chip',     text: "STEM, LEGO, or coding events" }
 ];
+
+const ICONS = {
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/>',
+  dollar: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  trophy: '<circle cx="12" cy="8" r="6"/><polyline points="8.5 13.5 7 22 12 19 17 22 15.5 13.5"/>',
+  rain: '<path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><line x1="8" y1="16" x2="8" y2="20"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="16" y1="16" x2="16" y2="20"/>',
+  chip: '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/>',
+  chev: '<polyline points="9 18 15 12 9 6"/>',
+  warn: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  spark: '<path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/>'
+};
+
+function svg(name, sw) {
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 1.9) +
+    '" stroke-linecap="round" stroke-linejoin="round">' + ICONS[name] + '</svg>';
+}
 
 /* ============================================================
  * State
@@ -1116,21 +1386,19 @@ function saveHistory() {
  * ============================================================ */
 
 function ptNow() {
-  const fmt = new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Los_Angeles',
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
-  });
-  return fmt.format(new Date());
+  }).format(new Date());
 }
 
 function ptClockShort() {
-  const fmt = new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Los_Angeles',
     weekday: 'short', month: 'short', day: 'numeric',
     hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
-  });
-  return fmt.format(new Date());
+  }).format(new Date());
 }
 
 function tickClock() {
@@ -1170,8 +1438,7 @@ function mdToHtml(md) {
   const closeList = () => { if (list) { out.push('</ul>'); list = false; } };
 
   while (i < lines.length) {
-    const line = lines[i];
-    const trimmed = line.trim();
+    const trimmed = lines[i].trim();
 
     // table: header row + separator row
     if (/^\|.*\|$/.test(trimmed) && i + 1 < lines.length && /^\|[\s:|-]+\|$/.test(lines[i + 1].trim())) {
@@ -1223,40 +1490,71 @@ const mainEl = document.getElementById('main');
 function render() {
   threadEl.innerHTML = '';
   if (!state.history.length) {
-    threadEl.appendChild(welcomeCard());
+    threadEl.appendChild(emptyState());
   } else {
     for (const m of state.history) threadEl.appendChild(messageEl(m));
   }
   if (state.busy) threadEl.appendChild(workingEl());
-  sendBtn.disabled = state.busy;
-  mainEl.scrollTop = mainEl.scrollHeight;
+  updateSendBtn();
+  // Empty state starts at the hero; conversations stick to the latest message.
+  mainEl.scrollTop = state.history.length ? mainEl.scrollHeight : 0;
 }
 
-function welcomeCard() {
-  const div = document.createElement('div');
-  div.className = 'welcome';
-  const proxySet = !!state.settings.proxyUrl;
-  div.innerHTML =
-    '<h2>What should we do?</h2>' +
-    '<p>Ask about family activities and I’ll research current, publicly listed events — checked against official sources and filtered so nothing that already ended shows up.</p>' +
+function emptyState() {
+  const frag = document.createDocumentFragment();
+
+  const hero = document.createElement('div');
+  hero.className = 'hero';
+  hero.innerHTML =
+    '<div class="hero-icon">' + svg('spark', 1.6) + '</div>' +
+    '<h1>Family Events</h1>' +
+    '<p>Current, verified activities near Lake Tapps for you and your 10-year-old.</p>' +
     '<div class="facts">' +
-      '<span class="fact">Home base: 98391 (Lake Tapps)</span>' +
-      '<span class="fact">Radius: ~25 driving miles</span>' +
-      '<span class="fact">Age tuned: 10</span>' +
-      '<span class="fact">Seattle: standout events only</span>' +
-    '</div>' +
-    '<div class="chips" id="chips"></div>' +
-    (proxySet ? '' :
-      '<div class="notice"><strong>Live research is off.</strong> Answers will rely on model knowledge and cannot verify current dates, hours, or cancellations. Deploy the Worker in <strong>RESEARCH.md</strong> and paste its URL under Settings to enable real web verification.</div>');
-  const chips = div.querySelector('#chips');
-  for (const q of QUICK_PROMPTS) {
+      '<span class="fact">Home base 98391</span>' +
+      '<span class="fact">~25 mi radius</span>' +
+      '<span class="fact">Age-10 friendly</span>' +
+      '<span class="fact">Seattle standouts</span>' +
+      '<span class="fact">Past events filtered</span>' +
+    '</div>';
+  frag.appendChild(hero);
+
+  const hdr = document.createElement('div');
+  hdr.className = 'section-hdr';
+  hdr.textContent = 'Suggestions';
+  frag.appendChild(hdr);
+
+  const group = document.createElement('div');
+  group.className = 'group';
+  for (const s of SUGGESTIONS) {
     const b = document.createElement('button');
-    b.className = 'chip';
-    b.textContent = q;
-    b.addEventListener('click', () => { if (!state.busy) send(q); });
-    chips.appendChild(b);
+    b.className = 'srow';
+    b.innerHTML =
+      '<span class="app-ic" style="background:' + s.color + '">' + svg(s.icon, 2) + '</span>' +
+      '<span class="txt">' + s.text + '</span>' +
+      '<span class="chev">' + svg('chev', 2.4) + '</span>';
+    b.addEventListener('click', () => { if (!state.busy) send(s.text); });
+    group.appendChild(b);
   }
-  return div;
+  frag.appendChild(group);
+
+  if (!state.settings.proxyUrl) {
+    const wrap = document.createElement('div');
+    wrap.style.marginTop = '14px';
+    const btn = document.createElement('button');
+    btn.className = 'banner';
+    btn.innerHTML = svg('warn', 2) +
+      '<span><b>Live research is off.</b> Answers can’t verify current dates, hours, or cancellations. Tap to add your research server in Settings.</span>';
+    btn.addEventListener('click', openSettings);
+    wrap.appendChild(btn);
+    frag.appendChild(wrap);
+  }
+
+  const note = document.createElement('div');
+  note.className = 'foot-note';
+  note.textContent = 'Answers are filtered against the current Pacific time. Confirm with the official source before heading out.';
+  frag.appendChild(note);
+
+  return frag;
 }
 
 function messageEl(m) {
@@ -1298,10 +1596,11 @@ function messageEl(m) {
 }
 
 function workingEl() {
-  const div = document.createElement('div');
-  div.className = 'working';
-  div.innerHTML = '<span class="dots"><i></i><i></i><i></i></span> Researching current events — checking official sources and filtering out anything that already ended. This can take a minute or two.';
-  return div;
+  const wrap = document.createElement('div');
+  wrap.innerHTML =
+    '<div class="typing"><i></i><i></i><i></i></div>' +
+    '<div class="typing-note">Researching current events — this can take a minute or two.</div>';
+  return wrap;
 }
 
 /* ============================================================
@@ -1349,7 +1648,7 @@ async function callProxy() {
 async function callBuiltIn() {
   // Fallback: no web access — answers from model knowledge only.
   if (!(window.claude && typeof window.claude.complete === 'function')) {
-    throw new Error('No research proxy is configured, and no built-in model helper is available. Open Settings and paste your Worker URL (see RESEARCH.md).');
+    throw new Error('No research server is configured. Tap the gear and paste your Worker URL (see RESEARCH.md).');
   }
   const transcript = apiMessages()
     .map(m => (m.role === 'user' ? 'User: ' : 'Researcher: ') + m.content)
@@ -1380,7 +1679,7 @@ async function send(text) {
     state.history.push({
       role: 'assistant',
       content: '**Something went wrong:** ' + (err && err.message || err) +
-        '\n\nNothing was verified. Try again, or check the proxy URL in Settings.',
+        '\n\nNothing was verified. Try again, or check the research server URL in Settings.',
       error: true,
       ts: Date.now()
     });
@@ -1397,11 +1696,15 @@ async function send(text) {
 const inputEl = document.getElementById('input');
 const sendBtn = document.getElementById('sendBtn');
 
+function updateSendBtn() {
+  sendBtn.disabled = state.busy || !inputEl.value.trim();
+}
+
 function autoGrow() {
   inputEl.style.height = 'auto';
-  inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + 'px';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
 }
-inputEl.addEventListener('input', autoGrow);
+inputEl.addEventListener('input', () => { autoGrow(); updateSendBtn(); });
 inputEl.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
@@ -1412,34 +1715,37 @@ sendBtn.addEventListener('click', submit);
 
 function submit() {
   const q = inputEl.value;
+  if (!q.trim() || state.busy) return;
   inputEl.value = '';
   autoGrow();
+  updateSendBtn();
   send(q);
 }
 
 document.getElementById('newChatBtn').addEventListener('click', () => {
   if (state.busy) return;
-  if (state.history.length && !confirm('Clear this conversation?')) return;
+  if (state.history.length && !confirm('Start a new search? This clears the conversation.')) return;
   state.history = [];
   saveHistory();
   render();
 });
 
-/* Settings dialog */
+/* Settings sheet */
 const dlg = document.getElementById('settingsDlg');
 const setProxy = document.getElementById('setProxy');
 const setRestrict = document.getElementById('setRestrict');
 const setDomains = document.getElementById('setDomains');
 const setInstructions = document.getElementById('setInstructions');
 
-document.getElementById('settingsBtn').addEventListener('click', () => {
+function openSettings() {
   setProxy.value = state.settings.proxyUrl;
   setRestrict.checked = state.settings.restrictDomains;
   setDomains.value = state.settings.domains.join('\n');
   setInstructions.value = state.settings.instructions;
   dlg.showModal();
-});
-document.getElementById('dlgClose').addEventListener('click', () => dlg.close());
+}
+document.getElementById('settingsBtn').addEventListener('click', openSettings);
+document.getElementById('dlgCancel').addEventListener('click', () => dlg.close());
 document.getElementById('dlgReset').addEventListener('click', () => {
   const d = defaultSettings();
   setProxy.value = d.proxyUrl;
@@ -1447,7 +1753,7 @@ document.getElementById('dlgReset').addEventListener('click', () => {
   setDomains.value = d.domains.join('\n');
   setInstructions.value = d.instructions;
 });
-document.getElementById('dlgSave').addEventListener('click', () => {
+document.getElementById('dlgDone').addEventListener('click', () => {
   state.settings.proxyUrl = setProxy.value.trim();
   state.settings.restrictDomains = setRestrict.checked;
   state.settings.domains = setDomains.value.split('\n').map(x => x.trim()).filter(Boolean);
