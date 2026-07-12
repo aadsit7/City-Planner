@@ -239,6 +239,31 @@
   .srow .txt { flex: 1; font-size: 16px; }
   .srow .chev { color: var(--label-3); flex-shrink: 0; }
   .srow .chev svg { width: 14px; height: 14px; }
+  .srow.plain + .srow.plain::before { left: 14px; }  /* no leading icon → full-width hairline */
+  .srow .copyic { color: var(--tint); flex-shrink: 0; display: flex; }
+  .srow .copyic svg { width: 17px; height: 17px; }
+  .srow .copyic.done { color: var(--green); }
+
+  /* Confirmation toast */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(8px);
+    background: rgba(28,28,30,.94);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 16px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    z-index: 60;
+    max-width: calc(100vw - 48px);
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   /* Home-screen-style grid of local event sites */
   .links-grid {
@@ -1383,13 +1408,25 @@ The goal is not the largest possible list.
 The goal is the most useful, current, relevant, and trustworthy list of activities for a Lake Tapps family with a 10-year-old child.`;
 
 // Siri-suggestion-style rows: label doubles as the query sent.
+// Ready-made searches. Tapping a row copies the FULL researcher
+// instructions + current Pacific time + this question — a complete,
+// self-contained prompt to paste into any AI app.
 const SUGGESTIONS = [
-  { color: 'var(--tint)',   icon: 'calendar', text: "What's happening today?" },
-  { color: 'var(--orange)', icon: 'sun',      text: "What can we do this weekend?" },
-  { color: 'var(--green)',  icon: 'dollar',   text: "Free or low-cost events this week" },
-  { color: 'var(--red)',    icon: 'trophy',   text: "Pro or minor-league games to watch soon" },
-  { color: 'var(--teal)',   icon: 'rain',     text: "Indoor ideas for a rainy day" },
-  { color: 'var(--indigo)', icon: 'chip',     text: "STEM, LEGO, or coding events" }
+  { text: "What's happening today?" },
+  { text: "What can we do this weekend?" },
+  { text: "Free or low-cost events this week" },
+  { text: "Pro or minor-league games to watch soon" },
+  { text: "Indoor ideas for a rainy day" },
+  { text: "STEM, LEGO, or coding events" }
+];
+
+// AI apps to paste the copied prompt into. Universal https links open the
+// installed app on a phone and fall back to the website otherwise.
+const AI_APPS = [
+  { name: 'ChatGPT', url: 'https://chatgpt.com/',           icon: 'chatgpt',  grad: ['#10a37f', '#0a7a5e'] },
+  { name: 'Claude',  url: 'https://claude.ai/new',          icon: 'claudeai', grad: ['#d97757', '#b45a3c'] },
+  { name: 'Grok',    url: 'https://grok.com/',              icon: 'grok',     grad: ['#3a3a3c', '#000000'] },
+  { name: 'Gemini',  url: 'https://gemini.google.com/app',  icon: 'spark',    grad: ['#4e82ee', '#9168c0'] }
 ];
 
 const ICONS = {
@@ -1410,7 +1447,10 @@ const ICONS = {
   pin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
   ticket: '<path d="M3 9V6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3a3 3 0 0 0 0 6v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a3 3 0 0 0 0-6z"/><line x1="14" y1="6" x2="14" y2="8"/><line x1="14" y1="11" x2="14" y2="13"/><line x1="14" y1="16" x2="14" y2="18"/>',
   facebook: '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
-  instagram: '<rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>'
+  instagram: '<rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>',
+  chatgpt: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+  claudeai: '<line x1="12" y1="3" x2="12" y2="21"/><line x1="4.2" y1="7.5" x2="19.8" y2="16.5"/><line x1="19.8" y1="7.5" x2="4.2" y2="16.5"/>',
+  grok: '<line x1="6" y1="20" x2="18" y2="4"/><line x1="6.5" y1="4.5" x2="11" y2="10.5"/>'
 };
 
 // Local event sites for the Lake Tapps / Pierce County area — rendered as
@@ -1620,22 +1660,55 @@ function emptyState() {
 
   const hdr = document.createElement('div');
   hdr.className = 'section-hdr';
-  hdr.textContent = 'Suggestions';
+  hdr.textContent = 'Copy a search prompt';
   frag.appendChild(hdr);
 
   const group = document.createElement('div');
   group.className = 'group';
   for (const s of SUGGESTIONS) {
     const b = document.createElement('button');
-    b.className = 'srow';
+    b.className = 'srow plain';
     b.innerHTML =
-      '<span class="app-ic" style="background:' + s.color + '">' + svg(s.icon, 2) + '</span>' +
       '<span class="txt">' + s.text + '</span>' +
-      '<span class="chev">' + svg('chev', 2.4) + '</span>';
-    b.addEventListener('click', () => { if (!state.busy) send(s.text); });
+      '<span class="copyic">' + svg('copy', 2) + '</span>';
+    b.addEventListener('click', async () => {
+      await copyText(buildAIPrompt(s.text));
+      const ic = b.querySelector('.copyic');
+      ic.classList.add('done');
+      ic.innerHTML = svg('check', 2.4);
+      toast('Copied — now open your AI app and paste');
+      setTimeout(() => { ic.classList.remove('done'); ic.innerHTML = svg('copy', 2); }, 1800);
+    });
     group.appendChild(b);
   }
   frag.appendChild(group);
+
+  const promptNote = document.createElement('div');
+  promptNote.className = 'foot-note';
+  promptNote.textContent = 'Each copy includes the full researcher instructions and the current Pacific time — paste it as one message.';
+  frag.appendChild(promptNote);
+
+  const aiHdr = document.createElement('div');
+  aiHdr.className = 'section-hdr';
+  aiHdr.textContent = 'Paste into your AI';
+  frag.appendChild(aiHdr);
+
+  const aiGrid = document.createElement('div');
+  aiGrid.className = 'links-grid';
+  for (const app of AI_APPS) {
+    const a = document.createElement('a');
+    a.className = 'link-app';
+    a.href = app.url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.innerHTML =
+      '<span class="tile" style="background:linear-gradient(180deg,' + app.grad[0] + ',' + app.grad[1] + ')">' +
+        svg(app.icon, 2) +
+      '</span>' +
+      '<span class="lbl">' + app.name + '</span>';
+    aiGrid.appendChild(a);
+  }
+  frag.appendChild(aiGrid);
 
   const linksHdr = document.createElement('div');
   linksHdr.className = 'section-hdr';
@@ -1716,6 +1789,31 @@ function messageEl(m) {
   }
   wrap.appendChild(bubble);
   return wrap;
+}
+
+/* Self-contained prompt for pasting into ChatGPT / Claude / Grok / Gemini:
+   the full researcher spec + authoritative current time + the question. */
+
+function buildAIPrompt(query) {
+  return state.settings.instructions +
+    '\n\nCURRENT TIME CONTEXT (authoritative, provided by the app)\n\n' +
+    'The current date and time in Lake Tapps, Washington (America/Los_Angeles) is: ' + ptNow() + '.\n' +
+    'Treat this as the current local time for all filtering, relative-date conversion, and the ' +
+    '"Current local time used for filtering" line. Do not substitute any other clock.\n\n' +
+    'USER REQUEST\n\n' + query;
+}
+
+let toastEl = null, toastTimer = null;
+function toast(msg) {
+  if (!toastEl) {
+    toastEl = document.createElement('div');
+    toastEl.className = 'toast';
+    document.body.appendChild(toastEl);
+  }
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
 }
 
 /* Copy an answer as clean, shareable plain text */
